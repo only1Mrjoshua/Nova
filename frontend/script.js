@@ -23,10 +23,10 @@
             rootMargin: '0px 0px -20px 0px'
         },
         navigation: {
-            // Hamburger menu selector
-            hamburgerSelector: '.hamburger, [data-hamburger]',
-            // Mobile menu selector
-            mobileMenuSelector: '.mobile-menu, [data-mobile-menu]',
+            // Hamburger menu selector - matches your HTML
+            hamburgerSelector: '#hamburger',
+            // Mobile menu selector - matches your HTML
+            mobileMenuSelector: '#navMenu',
             // Active class for mobile menu
             activeClass: 'active'
         },
@@ -122,22 +122,11 @@
         
         if (revealElements.length === 0) return;
         
-        // Set initial styles for reveal elements
-        revealElements.forEach(element => {
-            // Ensure element is hidden initially
-            element.style.opacity = '0';
-            element.style.transform = `translateY(${CONFIG.reveal.translateDistance}px)`;
-            element.style.transition = `opacity ${CONFIG.reveal.duration}ms ${CONFIG.reveal.easing}, 
-                                       transform ${CONFIG.reveal.duration}ms ${CONFIG.reveal.easing}`;
-        });
-        
         // Check if IntersectionObserver is supported
         if (!('IntersectionObserver' in window)) {
             // Fallback: reveal all elements immediately
             revealElements.forEach(element => {
                 element.classList.add(CONFIG.reveal.visibleClass);
-                element.style.opacity = '1';
-                element.style.transform = 'translateY(0)';
             });
             return;
         }
@@ -168,18 +157,7 @@
                     // Apply reveal with delay
                     setTimeout(() => {
                         element.classList.add(CONFIG.reveal.visibleClass);
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
-                        
-                        // Clean up inline styles after animation completes
-                        setTimeout(() => {
-                            element.style.transition = '';
-                            element.style.opacity = '';
-                            element.style.transform = '';
-                        }, CONFIG.reveal.duration);
                     }, delay);
-                    
-                    // Don't unobserve - keep elements visible once revealed
                 }
             });
         };
@@ -210,14 +188,6 @@
                     
                     setTimeout(() => {
                         element.classList.add(CONFIG.reveal.visibleClass);
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
-                        
-                        setTimeout(() => {
-                            element.style.transition = '';
-                            element.style.opacity = '';
-                            element.style.transform = '';
-                        }, CONFIG.reveal.duration);
                     }, delay);
                 }
             });
@@ -235,7 +205,13 @@
         const hamburger = document.querySelector(CONFIG.navigation.hamburgerSelector);
         const mobileMenu = document.querySelector(CONFIG.navigation.mobileMenuSelector);
         
-        if (!hamburger || !mobileMenu) return;
+        if (!hamburger || !mobileMenu) {
+            console.error('Navigation elements not found:', {
+                hamburger: hamburger ? 'Found' : 'Not found',
+                mobileMenu: mobileMenu ? 'Found' : 'Not found'
+            });
+            return;
+        }
         
         // Toggle mobile menu
         const toggleMobileMenu = () => {
@@ -253,14 +229,14 @@
         
         // Set initial aria attributes
         hamburger.setAttribute('aria-expanded', 'false');
-        hamburger.setAttribute('aria-controls', mobileMenu.id || 'mobile-menu');
+        hamburger.setAttribute('aria-controls', mobileMenu.id);
         hamburger.setAttribute('aria-label', 'Toggle navigation menu');
         
         // Add click event to hamburger
         hamburger.addEventListener('click', toggleMobileMenu);
         
         // Close mobile menu when clicking on a link
-        const mobileMenuLinks = mobileMenu.querySelectorAll('a[href^="#"]');
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
         mobileMenuLinks.forEach(link => {
             link.addEventListener('click', () => {
                 if (mobileMenu.classList.contains(CONFIG.navigation.activeClass)) {
@@ -344,51 +320,11 @@
      * Initialize CTA button behaviors
      */
     const initCTAButtons = () => {
-        // Map button data attributes or classes to target sections
-        const ctaConfig = {
-            'get-started': '#features', // Scroll to features section
-            'learn-more': '#how-it-works', // Scroll to how it works section
-            'start-tracking': '#features' // Another CTA that goes to features
-        };
-        
         // Find CTA buttons
-        const ctaButtons = document.querySelectorAll('[data-cta], .btn-cta, .btn-primary, .btn-secondary');
+        const ctaButtons = document.querySelectorAll('.btn-primary, .btn-secondary');
         
         ctaButtons.forEach(button => {
-            // Determine target based on data attribute, class, or text content
-            let targetSelector = null;
-            
-            // Check data attribute first
-            if (button.hasAttribute('data-cta-target')) {
-                targetSelector = button.getAttribute('data-cta-target');
-            } else if (button.hasAttribute('data-cta')) {
-                const ctaType = button.getAttribute('data-cta');
-                targetSelector = ctaConfig[ctaType];
-            } else {
-                // Fallback: check button text
-                const buttonText = button.textContent.toLowerCase();
-                if (buttonText.includes('get started') || buttonText.includes('start tracking')) {
-                    targetSelector = '#features';
-                } else if (buttonText.includes('learn more')) {
-                    targetSelector = '#how-it-works';
-                }
-            }
-            
-            if (targetSelector) {
-                button.addEventListener('click', (event) => {
-                    // Only handle if it's not a link with href
-                    if (button.tagName !== 'A' || !button.getAttribute('href')) {
-                        event.preventDefault();
-                        const targetElement = document.querySelector(targetSelector);
-                        
-                        if (targetElement) {
-                            smoothScrollTo(targetElement);
-                        }
-                    }
-                });
-            }
-            
-            // Add hover effect for all CTA buttons
+            // Add hover effect for CTA buttons
             button.addEventListener('mouseenter', () => {
                 button.style.transform = 'translateY(-2px)';
                 button.style.transition = 'transform 0.2s ease';
@@ -405,15 +341,15 @@
      * Initialize navbar scroll effect
      */
     const initNavbarScroll = () => {
-        const navbar = document.querySelector('.navbar, header');
+        const navbar = document.querySelector('.navbar');
         
         if (!navbar) return;
         
         const handleScroll = throttle(() => {
             if (window.scrollY > 100) {
-                navbar.classList.add('navbar--scrolled');
+                navbar.classList.add('scrolled');
             } else {
-                navbar.classList.remove('navbar--scrolled');
+                navbar.classList.remove('scrolled');
             }
         }, 100);
         
@@ -435,40 +371,31 @@
     };
 
     /**
-     * Initialize lazy loading for images
+     * Add reveal class to elements that should animate on scroll
      */
-    const initLazyLoading = () => {
-        if ('loading' in HTMLImageElement.prototype) {
-            // Browser supports native lazy loading
-            const images = document.querySelectorAll('img[data-src]');
-            images.forEach(img => {
-                img.src = img.dataset.src;
-                img.removeAttribute('data-src');
-            });
-        } else {
-            // Fallback for browsers without native support
-            const lazyImages = document.querySelectorAll('img[data-src]');
-            
-            if ('IntersectionObserver' in window) {
-                const imageObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const img = entry.target;
-                            img.src = img.dataset.src;
-                            img.removeAttribute('data-src');
-                            imageObserver.unobserve(img);
-                        }
-                    });
-                });
-                
-                lazyImages.forEach(img => imageObserver.observe(img));
-            } else {
-                // Fallback for very old browsers
-                lazyImages.forEach(img => {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                });
-            }
+    const addRevealClasses = () => {
+        // Add reveal class to feature cards
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach((card, index) => {
+            card.classList.add(CONFIG.reveal.className);
+        });
+        
+        // Add reveal class to step elements
+        const steps = document.querySelectorAll('.step');
+        steps.forEach((step, index) => {
+            step.classList.add(CONFIG.reveal.className);
+        });
+        
+        // Add reveal class to section headers
+        const sectionHeaders = document.querySelectorAll('.section-header');
+        sectionHeaders.forEach(header => {
+            header.classList.add(CONFIG.reveal.className);
+        });
+        
+        // Add reveal class to CTA container
+        const ctaContainer = document.querySelector('.cta-container');
+        if (ctaContainer) {
+            ctaContainer.classList.add(CONFIG.reveal.className);
         }
     };
 
@@ -486,6 +413,9 @@
     };
     
     const initComponents = () => {
+        // Add reveal classes first
+        addRevealClasses();
+        
         // Initialize all features in order
         initResponsiveNavigation();
         initRevealOnScroll();
@@ -493,7 +423,6 @@
         initCTAButtons();
         initNavbarScroll();
         initCurrentYear();
-        initLazyLoading();
         
         // Add a class to body when JS is loaded (for CSS enhancements)
         document.body.classList.add('js-loaded');
@@ -509,27 +438,8 @@
     const initErrorHandling = () => {
         window.addEventListener('error', (event) => {
             console.error('Uncaught error:', event.error);
-            
-            // Try to recover gracefully by revealing all elements
-            const revealElements = document.querySelectorAll(`.${CONFIG.reveal.className}`);
-            revealElements.forEach(element => {
-                element.classList.add(CONFIG.reveal.visibleClass);
-                element.style.opacity = '1';
-                element.style.transform = 'translateY(0)';
-            });
         });
     };
-
-    // ========== EXPORT FOR TESTING (optional) ==========
-    // Expose some functions for testing if needed (in non-minified version)
-    if (typeof window !== 'undefined') {
-        window.PricePulse = window.PricePulse || {};
-        window.PricePulse.utils = {
-            debounce,
-            throttle,
-            smoothScrollTo
-        };
-    }
 
     // Initialize error handling first
     initErrorHandling();
