@@ -787,6 +787,7 @@ body {
         flex-direction: row;
         justify-content: space-between;
         gap: 10px;
+        align-items: center;
     }
     
     .footer-bottom {
@@ -1063,6 +1064,7 @@ body {
         flex-direction: row;
         justify-content: space-between;
         gap: 8px;
+        align-items: center;
     }
     
     .remember-me {
@@ -1183,6 +1185,7 @@ body {
         flex-direction: row;
         justify-content: space-between;
         gap: 6px;
+        align-items: center;
     }
     
     .remember-me {
