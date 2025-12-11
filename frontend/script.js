@@ -1,450 +1,287 @@
-// script.js - PricePulse Landing Page
-(function() {
-    'use strict';
+// ========== HAMBURGER MENU - EXACT SAME AS HOW IT WORKS PAGE ==========
+const hamburger = document.getElementById('hamburger');
+const navMenu = document.getElementById('navMenu');
+const navLinks = document.querySelectorAll('.nav-link');
 
-    // ========== CONFIGURATION ==========
-    const CONFIG = {
-        reveal: {
-            // Class name for elements that should reveal on scroll
-            className: 'reveal',
-            // Class name to add when element becomes visible
-            visibleClass: 'reveal--visible',
-            // Default translate distance in pixels
-            translateDistance: 24,
-            // Animation duration in milliseconds
-            duration: 600,
-            // Animation easing function
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-            // Stagger delay between sibling elements in milliseconds
-            staggerDelay: 80,
-            // IntersectionObserver threshold (0 = any visible, 1 = fully visible)
-            threshold: 0.1,
-            // Root margin for IntersectionObserver
-            rootMargin: '0px 0px -20px 0px'
-        },
-        navigation: {
-            // Hamburger menu selector - matches your HTML
-            hamburgerSelector: '#hamburger',
-            // Mobile menu selector - matches your HTML
-            mobileMenuSelector: '#navMenu',
-            // Active class for mobile menu
-            activeClass: 'active'
-        },
-        scroll: {
-            // Smooth scroll duration in milliseconds
-            duration: 800,
-            // Smooth scroll easing function
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+// Toggle mobile menu - Same logic as How It Works page
+hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navMenu.classList.toggle('active');
+    
+    // Create or remove overlay - Same as How It Works
+    let overlay = document.querySelector('.mobile-overlay');
+    if (!overlay && navMenu.classList.contains('active')) {
+        overlay = document.createElement('div');
+        overlay.className = 'mobile-overlay';
+        document.body.appendChild(overlay);
+        
+        overlay.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 300);
+        });
+        
+        setTimeout(() => {
+            overlay.classList.add('active');
+        }, 10);
+    } else if (overlay && !navMenu.classList.contains('active')) {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 300);
+    }
+});
+
+// Close mobile menu when clicking on links - Same as How It Works
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('active');
+        
+        const overlay = document.querySelector('.mobile-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 300);
         }
-    };
+    });
+});
 
-    // ========== UTILITY FUNCTIONS ==========
-    /**
-     * Debounce function to limit how often a function can be called
-     * @param {Function} func - Function to debounce
-     * @param {number} wait - Wait time in milliseconds
-     * @returns {Function} Debounced function
-     */
-    const debounce = (func, wait) => {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    };
+// ========== EXISTING LANDING PAGE FUNCTIONALITY ==========
+// Navbar scroll effect - Same as How It Works
+window.addEventListener('scroll', () => {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+});
 
-    /**
-     * Throttle function to limit function execution rate
-     * @param {Function} func - Function to throttle
-     * @param {number} limit - Time limit in milliseconds
-     * @returns {Function} Throttled function
-     */
-    const throttle = (func, limit) => {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    };
-
-    /**
-     * Smooth scroll to target element
-     * @param {HTMLElement} targetElement - Element to scroll to
-     * @param {Object} options - Scroll options
-     */
-    const smoothScrollTo = (targetElement, options = {}) => {
-        const start = window.pageYOffset;
-        const target = targetElement.getBoundingClientRect().top + start;
-        const duration = options.duration || CONFIG.scroll.duration;
-        const easing = options.easing || CONFIG.scroll.easing;
-        
-        let startTime = null;
-        
-        const animateScroll = (currentTime) => {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const progress = Math.min(timeElapsed / duration, 1);
-            
-            // Apply easing
-            const easeProgress = easing === 'linear' ? progress :
-                progress < 0.5 ? 2 * progress * progress :
-                1 - Math.pow(-2 * progress + 2, 2) / 2;
-            
-            window.scrollTo(0, start + (target - start) * easeProgress);
-            
-            if (timeElapsed < duration) {
-                requestAnimationFrame(animateScroll);
-            } else {
-                // Update URL hash without scrolling
-                const id = targetElement.getAttribute('id');
-                if (id) {
-                    history.pushState(null, null, `#${id}`);
-                }
-            }
-        };
-        
-        requestAnimationFrame(animateScroll);
-    };
-
-    // ========== REVEAL ON SCROLL ==========
-    /**
-     * Initialize scroll reveal animation
-     */
-    const initRevealOnScroll = () => {
-        const revealElements = document.querySelectorAll(`.${CONFIG.reveal.className}`);
-        
-        if (revealElements.length === 0) return;
-        
-        // Check if IntersectionObserver is supported
-        if (!('IntersectionObserver' in window)) {
-            // Fallback: reveal all elements immediately
-            revealElements.forEach(element => {
-                element.classList.add(CONFIG.reveal.visibleClass);
-            });
-            return;
-        }
-        
-        // Track which elements have been revealed
-        const revealedElements = new Set();
-        
-        // Create IntersectionObserver callback
-        const observerCallback = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && !revealedElements.has(entry.target)) {
-                    const element = entry.target;
-                    revealedElements.add(element);
-                    
-                    // Find parent container to check for siblings
-                    const parent = element.parentElement;
-                    const siblingReveals = parent ? 
-                        Array.from(parent.querySelectorAll(`.${CONFIG.reveal.className}`)) : 
-                        [];
-                    
-                    // Find index of current element among siblings
-                    const elementIndex = siblingReveals.indexOf(element);
-                    
-                    // Calculate delay for stagger effect
-                    const delay = elementIndex >= 0 ? 
-                        elementIndex * CONFIG.reveal.staggerDelay : 0;
-                    
-                    // Apply reveal with delay
-                    setTimeout(() => {
-                        element.classList.add(CONFIG.reveal.visibleClass);
-                    }, delay);
-                }
-            });
-        };
-        
-        // Create IntersectionObserver
-        const observer = new IntersectionObserver(observerCallback, {
-            threshold: CONFIG.reveal.threshold,
-            rootMargin: CONFIG.reveal.rootMargin
-        });
-        
-        // Observe all reveal elements
-        revealElements.forEach(element => {
-            observer.observe(element);
-        });
-        
-        // Reveal elements that are already in view on page load
-        const checkInitialVisibility = () => {
-            revealElements.forEach(element => {
-                const rect = element.getBoundingClientRect();
-                const isVisible = (
-                    rect.top <= window.innerHeight * 0.9 &&
-                    rect.bottom >= 0
-                );
-                
-                if (isVisible && !revealedElements.has(element)) {
-                    revealedElements.add(element);
-                    const delay = 100; // Small delay for initial load
-                    
-                    setTimeout(() => {
-                        element.classList.add(CONFIG.reveal.visibleClass);
-                    }, delay);
-                }
-            });
-        };
-        
-        // Check initial visibility after a short delay
-        setTimeout(checkInitialVisibility, 100);
-    };
-
-    // ========== RESPONSIVE NAVIGATION ==========
-    /**
-     * Initialize responsive navigation
-     */
-    const initResponsiveNavigation = () => {
-        const hamburger = document.querySelector(CONFIG.navigation.hamburgerSelector);
-        const mobileMenu = document.querySelector(CONFIG.navigation.mobileMenuSelector);
-        
-        if (!hamburger || !mobileMenu) {
-            console.error('Navigation elements not found:', {
-                hamburger: hamburger ? 'Found' : 'Not found',
-                mobileMenu: mobileMenu ? 'Found' : 'Not found'
-            });
-            return;
-        }
-        
-        // Toggle mobile menu
-        const toggleMobileMenu = () => {
-            hamburger.classList.toggle(CONFIG.navigation.activeClass);
-            mobileMenu.classList.toggle(CONFIG.navigation.activeClass);
-            
-            // Toggle aria-expanded for accessibility
-            const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-            hamburger.setAttribute('aria-expanded', !isExpanded);
-            
-            // Toggle body scroll lock
-            document.body.style.overflow = mobileMenu.classList.contains(CONFIG.navigation.activeClass) ? 
-                'hidden' : '';
-        };
-        
-        // Set initial aria attributes
-        hamburger.setAttribute('aria-expanded', 'false');
-        hamburger.setAttribute('aria-controls', mobileMenu.id);
-        hamburger.setAttribute('aria-label', 'Toggle navigation menu');
-        
-        // Add click event to hamburger
-        hamburger.addEventListener('click', toggleMobileMenu);
-        
-        // Close mobile menu when clicking on a link
-        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-        mobileMenuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (mobileMenu.classList.contains(CONFIG.navigation.activeClass)) {
-                    toggleMobileMenu();
-                }
-            });
-        });
-        
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', (event) => {
-            if (mobileMenu.classList.contains(CONFIG.navigation.activeClass) &&
-                !hamburger.contains(event.target) &&
-                !mobileMenu.contains(event.target)) {
-                toggleMobileMenu();
-            }
-        });
-        
-        // Close mobile menu on escape key
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && mobileMenu.classList.contains(CONFIG.navigation.activeClass)) {
-                toggleMobileMenu();
-            }
-        });
-        
-        // Handle window resize - close menu on large screens
-        const handleResize = debounce(() => {
-            if (window.innerWidth > 768 && mobileMenu.classList.contains(CONFIG.navigation.activeClass)) {
-                toggleMobileMenu();
-            }
-        }, 250);
-        
-        window.addEventListener('resize', handleResize);
-    };
-
-    // ========== SMOOTH SCROLL ==========
-    /**
-     * Initialize smooth scroll for anchor links
-     */
-    const initSmoothScroll = () => {
-        // Select all anchor links that point to IDs on the same page
-        const anchorLinks = document.querySelectorAll('a[href^="#"]');
-        
-        anchorLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-                const href = link.getAttribute('href');
-                
-                // Skip empty or "#" only links
-                if (href === '#' || href === '#!') {
-                    return;
-                }
-                
-                try {
-                    const targetElement = document.querySelector(href);
-                    
-                    if (targetElement) {
-                        event.preventDefault();
-                        
-                        // Close mobile menu if open
-                        const mobileMenu = document.querySelector(CONFIG.navigation.mobileMenuSelector);
-                        const hamburger = document.querySelector(CONFIG.navigation.hamburgerSelector);
-                        
-                        if (mobileMenu && mobileMenu.classList.contains(CONFIG.navigation.activeClass)) {
-                            mobileMenu.classList.remove(CONFIG.navigation.activeClass);
-                            hamburger.classList.remove(CONFIG.navigation.activeClass);
-                            hamburger.setAttribute('aria-expanded', 'false');
-                            document.body.style.overflow = '';
-                        }
-                        
-                        // Smooth scroll to target
-                        smoothScrollTo(targetElement);
-                    }
-                } catch (error) {
-                    console.warn('Smooth scroll failed:', error);
-                }
-            });
-        });
-    };
-
-    // ========== CTA BUTTONS ==========
-    /**
-     * Initialize CTA button behaviors
-     */
-    const initCTAButtons = () => {
-        // Find CTA buttons
-        const ctaButtons = document.querySelectorAll('.btn-primary, .btn-secondary');
-        
-        ctaButtons.forEach(button => {
-            // Add hover effect for CTA buttons
-            button.addEventListener('mouseenter', () => {
-                button.style.transform = 'translateY(-2px)';
-                button.style.transition = 'transform 0.2s ease';
-            });
-            
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'translateY(0)';
-            });
-        });
-    };
-
-    // ========== ADDITIONAL PAGE BEHAVIORS ==========
-    /**
-     * Initialize navbar scroll effect
-     */
-    const initNavbarScroll = () => {
-        const navbar = document.querySelector('.navbar');
-        
-        if (!navbar) return;
-        
-        const handleScroll = throttle(() => {
-            if (window.scrollY > 100) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        }, 100);
-        
-        window.addEventListener('scroll', handleScroll);
-        // Trigger once on load
-        handleScroll();
-    };
-
-    /**
-     * Initialize current year in footer
-     */
-    const initCurrentYear = () => {
-        const yearElements = document.querySelectorAll('[data-current-year]');
-        const currentYear = new Date().getFullYear();
-        
-        yearElements.forEach(element => {
-            element.textContent = currentYear;
-        });
-    };
-
-    /**
-     * Add reveal class to elements that should animate on scroll
-     */
-    const addRevealClasses = () => {
-        // Add reveal class to feature cards
-        const featureCards = document.querySelectorAll('.feature-card');
-        featureCards.forEach((card, index) => {
-            card.classList.add(CONFIG.reveal.className);
-        });
-        
-        // Add reveal class to step elements
-        const steps = document.querySelectorAll('.step');
+// ========== LANDING PAGE SPECIFIC FEATURES ==========
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Set current year in footer
+    const yearSpan = document.querySelector('.current-year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
+    
+    // Add initial styles for reveal elements
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach(element => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+    });
+    
+    // Initialize step animations if present
+    const steps = document.querySelectorAll('.step');
+    if (steps.length > 0) {
         steps.forEach((step, index) => {
-            step.classList.add(CONFIG.reveal.className);
+            step.style.opacity = '0';
+            step.style.transform = 'translateY(20px)';
         });
         
-        // Add reveal class to section headers
-        const sectionHeaders = document.querySelectorAll('.section-header');
-        sectionHeaders.forEach(header => {
-            header.classList.add(CONFIG.reveal.className);
+        // Scroll animation for steps
+        const animateSteps = () => {
+            steps.forEach((step, index) => {
+                const rect = step.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                
+                if (rect.top < windowHeight - 100) {
+                    step.style.opacity = '1';
+                    step.style.transform = 'translateY(0)';
+                    step.style.transition = `opacity 0.6s ease ${index * 0.2}s, transform 0.6s ease ${index * 0.2}s`;
+                }
+            });
+        };
+        
+        window.addEventListener('scroll', animateSteps);
+        window.addEventListener('load', animateSteps);
+        animateSteps(); // Initial check
+    }
+    
+    // Feature cards hover effects
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-10px)';
         });
         
-        // Add reveal class to CTA container
-        const ctaContainer = document.querySelector('.cta-container');
-        if (ctaContainer) {
-            ctaContainer.classList.add(CONFIG.reveal.className);
-        }
-    };
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Price history graph interaction
+    const graphBars = document.querySelectorAll('.graph-bar');
+    if (graphBars.length > 0) {
+        graphBars.forEach((bar, index) => {
+            // Set random heights for demo
+            const randomHeight = 20 + Math.random() * 80;
+            bar.style.height = `${randomHeight}%`;
+            
+            // Mark the last bar as active (current price)
+            if (index === graphBars.length - 1) {
+                bar.classList.add('active');
+            }
+            
+            bar.addEventListener('mouseenter', () => {
+                bar.style.opacity = '0.8';
+            });
+            
+            bar.addEventListener('mouseleave', () => {
+                bar.style.opacity = '1';
+            });
+        });
+    }
+});
 
-    // ========== INITIALIZATION ==========
-    /**
-     * Initialize all components when DOM is ready
-     */
-    const init = () => {
-        // Wait for DOM to be fully loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initComponents);
-        } else {
-            initComponents();
+// Smooth scroll for anchor links - Same as How It Works
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+            window.scrollTo({
+                top: targetElement.offsetTop - 100,
+                behavior: 'smooth'
+            });
         }
+    });
+});
+
+// ========== REVEAL ON SCROLL ANIMATION ==========
+const initRevealOnScroll = () => {
+    const revealElements = document.querySelectorAll('.reveal');
+    
+    if (revealElements.length === 0) return;
+    
+    const revealOnScroll = () => {
+        revealElements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementVisible = 150;
+            
+            if (elementTop < window.innerHeight - elementVisible) {
+                element.classList.add('reveal--visible');
+            }
+        });
     };
     
-    const initComponents = () => {
-        // Add reveal classes first
-        addRevealClasses();
-        
-        // Initialize all features in order
-        initResponsiveNavigation();
-        initRevealOnScroll();
-        initSmoothScroll();
-        initCTAButtons();
-        initNavbarScroll();
-        initCurrentYear();
-        
-        // Add a class to body when JS is loaded (for CSS enhancements)
-        document.body.classList.add('js-loaded');
-        
-        // Log initialization for debugging
-        console.log('PricePulse landing page initialized successfully');
-    };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll(); // Check on load
+};
 
-    // ========== ERROR HANDLING ==========
-    /**
-     * Global error handler for uncaught errors
-     */
-    const initErrorHandling = () => {
-        window.addEventListener('error', (event) => {
-            console.error('Uncaught error:', event.error);
-        });
-    };
+// Initialize reveal animation
+initRevealOnScroll();
 
-    // Initialize error handling first
-    initErrorHandling();
+// ========== DEMO ANIMATIONS ==========
+// Pulse animation for live badge
+const pulseAnimation = () => {
+    const pulseDot = document.querySelector('.pulse-dot');
+    if (pulseDot) {
+        setInterval(() => {
+            pulseDot.style.opacity = pulseDot.style.opacity === '0.5' ? '1' : '0.5';
+        }, 1000);
+    }
+};
+
+// Alert dot blinking animation
+const blinkAlertDot = () => {
+    const alertDots = document.querySelectorAll('.alert-dot');
+    alertDots.forEach(dot => {
+        setInterval(() => {
+            dot.style.opacity = dot.style.opacity === '0.3' ? '1' : '0.3';
+        }, 1000);
+    });
+};
+
+// Platform icons rotation
+const rotatePlatformIcons = () => {
+    const platformIcons = document.querySelectorAll('.platform-icons i');
+    platformIcons.forEach((icon, index) => {
+        setTimeout(() => {
+            icon.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                icon.style.transform = 'scale(1)';
+            }, 300);
+        }, index * 500);
+    });
     
-    // Start the application
-    init();
+    // Repeat every 5 seconds
+    setInterval(() => {
+        platformIcons.forEach((icon, index) => {
+            setTimeout(() => {
+                icon.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1)';
+                }, 300);
+            }, index * 500);
+        });
+    }, 5000);
+};
 
-})();
+// Initialize all animations
+document.addEventListener('DOMContentLoaded', () => {
+    pulseAnimation();
+    blinkAlertDot();
+    rotatePlatformIcons();
+});
+
+// ========== RESPONSIVE BEHAVIOR ==========
+// Handle window resize
+window.addEventListener('resize', () => {
+    // Close mobile menu if resizing to larger screen
+    if (window.innerWidth > 768 && navMenu.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('active');
+        
+        const overlay = document.querySelector('.mobile-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 300);
+        }
+    }
+});
+
+// ========== CTA BUTTON INTERACTIONS ==========
+const ctaButtons = document.querySelectorAll('.btn-primary, .btn-secondary');
+ctaButtons.forEach(button => {
+    button.addEventListener('mouseenter', () => {
+        button.style.transform = 'translateY(-3px)';
+        button.style.boxShadow = '0 8px 20px rgba(255, 215, 0, 0.4)';
+    });
+    
+    button.addEventListener('mouseleave', () => {
+        button.style.transform = 'translateY(0)';
+        button.style.boxShadow = button.classList.contains('btn-primary') 
+            ? '0 5px 15px rgba(255, 215, 0, 0.3)' 
+            : 'none';
+    });
+    
+    button.addEventListener('click', (e) => {
+        // Add click feedback
+        button.style.transform = 'translateY(1px)';
+        setTimeout(() => {
+            button.style.transform = 'translateY(-3px)';
+        }, 100);
+    });
+});

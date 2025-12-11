@@ -253,7 +253,7 @@ p {
     gap: 15px;
 }
 
-/* Hamburger Menu - Styled like Admin Dashboard but on Right */
+/* Hamburger Menu - Exact same as How It Works page */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -267,7 +267,7 @@ p {
     z-index: 1001;
     width: 40px;
     height: 40px;
-    margin-left: auto; /* Keep on right side */
+    margin-left: auto;
 }
 
 .hamburger:hover {
@@ -283,7 +283,6 @@ p {
     transform-origin: center;
 }
 
-/* Hamburger Menu Animation - When Active */
 .hamburger.active .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
@@ -296,7 +295,7 @@ p {
     transform: translateY(-8px) rotate(-45deg);
 }
 
-/* Mobile Menu Overlay */
+/* Mobile Menu Overlay - Exact same as How It Works page */
 .mobile-overlay {
     display: none;
     position: fixed;
@@ -1144,14 +1143,14 @@ p {
         max-width: 90%;
     }
     
-    /* Navigation - Mobile Styles */
+    /* Navigation - Mobile Styles - UPDATED to match How It Works page */
     .navbar {
         padding: 15px 0;
     }
     
     .hamburger {
         display: flex;
-        order: 2; /* Keep on right side */
+        order: 2;
     }
     
     .nav-menu {
@@ -1165,9 +1164,9 @@ p {
         flex-direction: column;
         align-items: flex-start;
         justify-content: flex-start;
-        padding: 80px 30px 30px;
+        padding: 100px 30px 30px; /* Increased top padding to match How It Works */
         gap: 25px;
-        transition: var(--transition);
+        transition: right 0.3s ease; /* Changed transition property */
         z-index: 999;
         overflow-y: auto;
         box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
@@ -1175,7 +1174,6 @@ p {
     
     .nav-menu.active {
         right: 0;
-        transform: translateX(0);
     }
     
     .nav-link {
@@ -1196,26 +1194,6 @@ p {
         width: 100%;
         justify-content: center;
         padding: 15px;
-    }
-    
-    /* Close button for mobile menu */
-    .menu-close {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: none;
-        border: none;
-        color: var(--light);
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 5px;
-        border-radius: 4px;
-        z-index: 1001;
-        transition: var(--transition);
-    }
-    
-    .menu-close:hover {
-        background-color: rgba(255, 255, 255, 0.1);
     }
     
     /* Hero Section */
