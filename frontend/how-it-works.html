@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>How It Works - PricePulse | Simple 5-Step Process</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="how-it-works.css" />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo-wrapper">
+          <div class="logo-img">
+            <img src="images/price pulse.png" alt="PricePulse Logo" />
+          </div>
+          <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+        </div>
+
+        <div class="nav-menu" id="navMenu">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="features.html" class="nav-link">Features</a>
+          <a href="how-it-works.html" class="nav-link active">How It Works</a>
+          <a href="contact.html" class="nav-link">Contact</a>
+          <div class="nav-buttons">
+            <a href="signin.html" class="btn-login">Login</a>
+            <a href="signup.html" class="btn-signup">Sign Up Free</a>
+          </div>
+        </div>
+
+        <button class="hamburger" id="hamburger">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="works-hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>🎯 SIMPLE 5-STEP PROCESS</span>
+          </div>
+          <h1 class="hero-title">
+            How <span class="highlight">PricePulse</span> Works
+          </h1>
+          <p class="hero-subtitle">
+            Start saving money in just minutes with our straightforward process.
+            From product search to price drop alerts, we've made smart shopping
+            effortless.
+          </p>
+          <div class="hero-buttons">
+            <a href="#step-by-step" class="btn-secondary">
+              <i class="fas fa-arrow-down"></i>
+              See The Steps
+            </a>
+            <a href="signup.html" class="btn-primary">
+              Try It Free Now
+              <i class="fas fa-play-circle"></i>
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <h3>5</h3>
+              <p>Simple Steps</p>
+            </div>
+            <div class="stat-item">
+              <h3>2 Min</h3>
+              <p>Setup Time</p>
+            </div>
+            <div class="stat-item">
+              <h3>24/7</h3>
+              <p>Monitoring</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step-by-Step Process -->
+    <section class="steps-section" id="step-by-step">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            Your <span class="highlight">5-Step</span> Journey to Smart Shopping
+          </h2>
+          <p class="section-subtitle">
+            Follow these simple steps to start saving money today
+          </p>
+        </div>
+
+        <div class="process-container">
+          <!-- Step 1 -->
+          <div class="process-step reveal">
+            <div class="step-visual">
+              <div class="step-number">1</div>
+              <div class="step-shape">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+              </div>
+            </div>
+            <div class="step-content">
+              <h3>Search Any Product</h3>
+              <p>
+                Enter the product URL or name from Amazon, Jumia, Konga, or
+                eBay. Our system automatically detects the product and starts
+                tracking it.
+              </p>
+              <div class="step-demo">
+                <div class="demo-search">
+                  <i class="fas fa-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Paste product URL or search..."
+                    disabled
+                  />
+                  <button class="demo-btn" disabled>
+                    <i class="fas fa-plus"></i> Track
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="process-step reveal">
+            <div class="step-visual">
+              <div class="step-number">2</div>
+              <div class="step-shape">
+                <i class="fas fa-sync-alt"></i>
+              </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+              </div>
+            </div>
+            <div class="step-content">
+              <h3>Automatic Price Fetching</h3>
+              <p>
+                PricePulse fetches current prices from all supported platforms.
+                See the best available price and compare across different
+                retailers.
+              </p>
+              <div class="step-demo">
+                <div class="price-fetching">
+                  <div class="fetching-animation">
+                    <div class="pulse-dot"></div>
+                    <div class="pulse-ring"></div>
+                  </div>
+                  <div class="fetching-text">Fetching prices...</div>
+                  <div class="platform-icons">
+                    <i class="fab fa-amazon" style="color: #ff9900"></i>
+                    <i class="fas fa-shopping-cart" style="color: #f68b1e"></i>
+                    <i class="fas fa-store" style="color: #7a1fa2"></i>
+                    <i class="fab fa-ebay" style="color: #0064d2"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="process-step reveal">
+            <div class="step-visual">
+              <div class="step-number">3</div>
+              <div class="step-shape">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+              </div>
+            </div>
+            <div class="step-content">
+              <h3>View Price History & Trends</h3>
+              <p>
+                Access detailed price history charts showing 6 months of data.
+                Identify patterns and predict the best time to buy.
+              </p>
+              <div class="step-demo">
+                <div class="trend-chart">
+                  <div class="chart-header">
+                    <span>Price History</span>
+                    <span class="chart-timeframe">6 Months</span>
+                  </div>
+                  <div class="chart-graph">
+                    <div class="graph-line"></div>
+                    <div class="graph-point" style="left: 10%"></div>
+                    <div class="graph-point" style="left: 30%"></div>
+                    <div class="graph-point" style="left: 50%"></div>
+                    <div class="graph-point active" style="left: 70%"></div>
+                    <div class="graph-point" style="left: 90%"></div>
+                  </div>
+                  <div class="chart-labels">
+                    <span>Jan</span>
+                    <span>Mar</span>
+                    <span>May</span>
+                    <span>Jul</span>
+                    <span>Sep</span>
+                    <span>Now</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="process-step reveal">
+            <div class="step-visual">
+              <div class="step-number">4</div>
+              <div class="step-shape">
+                <i class="fas fa-bullseye"></i>
+              </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+              </div>
+            </div>
+            <div class="step-content">
+              <h3>Set Your Target Price</h3>
+              <p>
+                Define your desired price or discount percentage. Choose how you
+                want to be notified when your target is reached.
+              </p>
+              <div class="step-demo">
+                <div class="target-setup">
+                  <div class="target-option">
+                    <div class="option-header">
+                      <i class="fas fa-tag"></i>
+                      <span>Target Price</span>
+                    </div>
+                    <div class="option-input">
+                      <span>₦</span>
+                      <input type="text" value="800,000" disabled />
+                    </div>
+                  </div>
+                  <div class="target-option">
+                    <div class="option-header">
+                      <i class="fas fa-percentage"></i>
+                      <span>Discount Alert</span>
+                    </div>
+                    <div class="option-input">
+                      <input type="text" value="20" disabled />
+                      <span>%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="process-step reveal">
+            <div class="step-visual">
+              <div class="step-number">5</div>
+              <div class="step-shape">
+                <i class="fas fa-bell"></i>
+              </div>
+            </div>
+            <div class="step-content">
+              <h3>Get Instant Alerts & Save</h3>
+              <p>
+                Receive notifications via email, SMS, or push notification when
+                prices drop to your target. Buy at the perfect moment and save
+                money.
+              </p>
+              <div class="step-demo">
+                <div class="alert-notification">
+                  <div class="notification-header">
+                    <div class="notification-icon">
+                      <i class="fas fa-bell"></i>
+                      <div class="notification-badge">1</div>
+                    </div>
+                    <div class="notification-title">
+                      <strong>Price Alert!</strong>
+                      <span>Just now</span>
+                    </div>
+                  </div>
+                  <div class="notification-body">
+                    <p>
+                      Samsung Galaxy S23 Ultra price dropped to
+                      <strong>₦799,999</strong>
+                    </p>
+                    <p>Your target: ₦800,000 • You save: ₦150,001</p>
+                  </div>
+                  <button class="notification-action" disabled>
+                    <i class="fas fa-shopping-cart"></i>
+                    Buy Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Timeline -->
+    <section class="timeline-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            The <span class="highlight">PricePulse</span> Timeline
+          </h2>
+          <p class="section-subtitle">
+            See how our system works behind the scenes to save you money
+          </p>
+        </div>
+
+        <div class="timeline-container">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="timeline-content">
+                <h3>You Add a Product</h3>
+                <p>You paste a product URL or search for an item</p>
+                <span class="timeline-time">Instant</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="timeline-content">
+                <h3>Our System Scans</h3>
+                <p>PricePulse fetches prices from all platforms</p>
+                <span class="timeline-time">Within 5 minutes</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <i class="fas fa-database"></i>
+              </div>
+              <div class="timeline-content">
+                <h3>Data Analysis</h3>
+                <p>We analyze price history and predict trends</p>
+                <span class="timeline-time">Continuous</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <i class="fas fa-bell"></i>
+              </div>
+              <div class="timeline-content">
+                <h3>Alert Triggered</h3>
+                <p>System detects price drop matching your target</p>
+                <span class="timeline-time">Real-time</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker">
+                <i class="fas fa-money-bill-wave"></i>
+              </div>
+              <div class="timeline-content">
+                <h3>You Save Money</h3>
+                <p>You buy at the best price and enjoy savings</p>
+                <span class="timeline-time">Mission accomplished!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            Frequently <span class="highlight">Asked Questions</span>
+          </h2>
+          <p class="section-subtitle">
+            Get answers to common questions about how PricePulse works
+          </p>
+        </div>
+
+        <div class="faq-container">
+          <div class="faq-item reveal">
+            <div class="faq-question">
+              <h3>How often does PricePulse check prices?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Our system checks prices every 5 minutes for active trackers.
+                For products with high price volatility or during sales events,
+                we monitor even more frequently.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item reveal">
+            <div class="faq-question">
+              <h3>Is there a limit to how many products I can track?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Free users can track up to 5 products simultaneously. Premium
+                plans offer unlimited tracking, advanced analytics, and priority
+                support.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item reveal">
+            <div class="faq-question">
+              <h3>How accurate are the price predictions?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Our AI algorithms analyze 6 months of price history, seasonal
+                trends, and market patterns to provide accurate predictions with
+                over 85% accuracy rate.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item reveal">
+            <div class="faq-question">
+              <h3>Can I track products from any country?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>
+                Currently, we support platforms in Nigeria, Kenya, Ghana, South
+                Africa, and the United States. We're constantly adding support
+                for more regions and platforms.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item reveal">
+            <div class="faq-question">
+              <h3>How quickly will I get alerts when prices drop?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>
+                You'll receive alerts within 5 minutes of a price drop. For
+                critical price changes, our system sends immediate
+                notifications.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+      <div class="container">
+        <div class="cta-container">
+          <h2>Ready to Start Your Smart Shopping Journey?</h2>
+          <p>
+            Join thousands of users who save an average of ₦25,000 monthly with
+            PricePulse
+          </p>
+          <div class="cta-buttons">
+            <a href="signup.html" class="btn-primary btn-large">
+              <i class="fas fa-rocket"></i>
+              Start Tracking Free
+            </a>
+            <a href="features.html" class="btn-secondary btn-large">
+              <i class="fas fa-star"></i>
+              See All Features
+            </a>
+          </div>
+          <p class="cta-note">
+            No credit card required • 14-day free trial • Cancel anytime
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="logo-wrapper">
+              <div class="logo-img">
+                <img src="images/price pulse.png" alt="PricePulse Logo" />
+              </div>
+              <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+            </div>
+            <p class="footer-description">
+              Your intelligent shopping assistant that helps you track prices,
+              catch deals, and save money across all major e-commerce platforms.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <div class="link-group">
+              <h4>Product</h4>
+              <a href="features.html">Features</a>
+              <a href="how-it-works.html">How It Works</a>
+              <a href="#">Pricing</a>
+              <a href="#">API</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Blog</a>
+              <a href="#">Careers</a>
+              <a href="contact.html">Contact</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Support</h4>
+              <a href="#">Help Center</a>
+              <a href="#">FAQ</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Platforms</h4>
+              <a href="#">Jumia Tracker</a>
+              <a href="#">Konga Tracker</a>
+              <a href="#">Amazon Tracker</a>
+              <a href="#">eBay Tracker</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>
+            &copy; 2023 PricePulse. All rights reserved. Made with
+            <i class="fas fa-heart" style="color: #ffd700"></i> for smart
+            shoppers.
+          </p>
+          <div class="footer-extra">
+            <span>🇳🇬 Proudly serving African shoppers</span>
+            <div class="secure-badge">
+              <i class="fas fa-lock"></i>
+              <span>Secure & Private</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="how-it-works.js"></script>
+  </body>
+</html>
