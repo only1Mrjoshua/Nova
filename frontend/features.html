@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Features - PricePulse | Advanced Price Tracking Features</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="features.css" />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo-wrapper">
+          <div class="logo-img">
+            <img src="images/price pulse.png" alt="PricePulse Logo" />
+          </div>
+          <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+        </div>
+
+        <div class="nav-menu" id="navMenu">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="features.html" class="nav-link active">Features</a>
+          <a href="how-it-works.html" class="nav-link">How It Works</a>
+          <a href="contact.html" class="nav-link">Contact</a>
+          <div class="nav-buttons">
+            <a href="signin.html" class="btn-login">Login</a>
+            <a href="signup.html" class="btn-signup">Sign Up Free</a>
+          </div>
+        </div>
+
+        <button class="hamburger" id="hamburger">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="features-hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>✨ POWERFUL FEATURES</span>
+          </div>
+          <h1 class="hero-title">
+            Everything You Need to <span class="highlight">Shop Smarter</span>
+          </h1>
+          <p class="hero-subtitle">
+            Discover the advanced tools that make PricePulse the most
+            intelligent price tracking platform. From real-time monitoring to
+            historical analysis, we've built everything to help you save money.
+          </p>
+          <div class="hero-buttons">
+            <a href="signup.html" class="btn-primary">
+              Try All Features Free
+              <i class="fas fa-rocket"></i>
+            </a>
+            <a href="#feature-grid" class="btn-secondary">
+              <i class="fas fa-arrow-down"></i>
+              Explore Features
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Features Grid -->
+    <section class="feature-grid-section" id="feature-grid">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            Advanced <span class="highlight">Features</span> That Set Us Apart
+          </h2>
+          <p class="section-subtitle">
+            Built with cutting-edge technology to deliver the best shopping
+            experience
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature 1 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Real-Time Price Tracking</h3>
+            <p>
+              Our system monitors prices 24/7 with updates every 5 minutes. Get
+              the most current pricing data across all supported platforms.
+            </p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-number">5-min</span>
+                <span class="stat-label">Refresh Rate</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Monitoring</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <h3>Multi-Platform Comparison</h3>
+            <p>
+              Track products across Amazon, Jumia, Konga, eBay and more. See all
+              prices in one unified dashboard for easy comparison.
+            </p>
+            <div class="platform-tags">
+              <span class="platform-tag">
+                <i class="fab fa-amazon"></i> Amazon
+              </span>
+              <span class="platform-tag">
+                <i class="fas fa-shopping-cart"></i> Jumia
+              </span>
+              <span class="platform-tag">
+                <i class="fas fa-store"></i> Konga
+              </span>
+              <span class="platform-tag">
+                <i class="fab fa-ebay"></i> eBay
+              </span>
+            </div>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <h3>Smart Price-Drop Alerts</h3>
+            <p>
+              Set custom price targets and receive instant notifications via
+              email, SMS, or push notifications when prices hit your target.
+            </p>
+            <div class="alert-types">
+              <div class="alert-type">
+                <i class="fas fa-envelope"></i>
+                <span>Email</span>
+              </div>
+              <div class="alert-type">
+                <i class="fas fa-sms"></i>
+                <span>SMS</span>
+              </div>
+              <div class="alert-type">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Push</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>6-Month Price History</h3>
+            <p>
+              Visualize price trends with interactive charts. See historical
+              data to predict the best time to buy and understand market
+              patterns.
+            </p>
+            <div class="history-demo">
+              <div class="history-graph">
+                <div class="graph-bar" style="height: 60%"></div>
+                <div class="graph-bar" style="height: 80%"></div>
+                <div class="graph-bar active" style="height: 100%"></div>
+                <div class="graph-bar" style="height: 70%"></div>
+                <div class="graph-bar" style="height: 50%"></div>
+                <div class="graph-bar" style="height: 65%"></div>
+              </div>
+              <span class="history-label">6 Months History</span>
+            </div>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3>Intelligent Dashboard</h3>
+            <p>
+              Your personalized dashboard shows all tracked products, price
+              changes, and savings insights in one beautifully designed
+              interface.
+            </p>
+            <div class="dashboard-highlights">
+              <div class="highlight-item">
+                <i class="fas fa-eye"></i>
+                <span>Tracked Products</span>
+              </div>
+              <div class="highlight-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>Savings Analytics</span>
+              </div>
+              <div class="highlight-item">
+                <i class="fas fa-bell"></i>
+                <span>Active Alerts</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-bullseye"></i>
+            </div>
+            <h3>Custom Price Targets</h3>
+            <p>
+              Define your own target prices or percentage discounts. Our system
+              will monitor and alert you when your conditions are met.
+            </p>
+            <div class="target-demo">
+              <div class="target-item">
+                <span>Target Price:</span>
+                <div class="target-value">₦800,000</div>
+              </div>
+              <div class="target-item">
+                <span>Discount Alert:</span>
+                <div class="target-value">-20%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 7 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3>AI-Powered Predictions</h3>
+            <p>
+              Our machine learning algorithms analyze price patterns to predict
+              future price drops and recommend optimal buying times.
+            </p>
+            <div class="prediction-badge">
+              <i class="fas fa-brain"></i>
+              <span>Smart Predictions</span>
+            </div>
+          </div>
+
+          <!-- Feature 8 -->
+          <div class="feature-card reveal">
+            <div class="feature-icon">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3>Mobile App</h3>
+            <p>
+              Access your price tracking on the go with our native mobile apps
+              for iOS and Android. Never miss a deal anywhere.
+            </p>
+            <div class="app-stores">
+              <div class="store-badge">
+                <i class="fab fa-apple"></i>
+                <span>App Store</span>
+              </div>
+              <div class="store-badge">
+                <i class="fab fa-google-play"></i>
+                <span>Play Store</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Advanced Features Section -->
+    <section class="advanced-features">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="highlight">Advanced</span> Capabilities
+          </h2>
+          <p class="section-subtitle">
+            Professional tools for power users and serious shoppers
+          </p>
+        </div>
+
+        <div class="advanced-grid">
+          <div class="advanced-card">
+            <div class="advanced-icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <div class="advanced-content">
+              <h3>Developer API</h3>
+              <p>
+                Integrate PricePulse data into your own applications with our
+                comprehensive REST API.
+              </p>
+              <a href="#" class="advanced-link">
+                View API Docs
+                <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="advanced-card">
+            <div class="advanced-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="advanced-content">
+              <h3>Team Collaboration</h3>
+              <p>
+                Share tracked products and price alerts with your team or family
+                members.
+              </p>
+              <a href="#" class="advanced-link">
+                Learn More
+                <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="advanced-card">
+            <div class="advanced-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="advanced-content">
+              <h3>Privacy First</h3>
+              <p>
+                Your data is encrypted and never shared. We prioritize your
+                privacy and security.
+              </p>
+              <a href="#" class="advanced-link">
+                Privacy Policy
+                <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="features-cta">
+      <div class="container">
+        <div class="cta-container">
+          <h2>Ready to Experience All Features?</h2>
+          <p>
+            Join thousands of smart shoppers using PricePulse to save money
+            every day
+          </p>
+          <a href="signup.html" class="btn-primary btn-large">
+            Start Free Trial
+            <i class="fas fa-rocket"></i>
+          </a>
+          <div class="cta-features">
+            <div class="cta-feature">
+              <i class="fas fa-check-circle"></i>
+              <span>14-day free trial</span>
+            </div>
+            <div class="cta-feature">
+              <i class="fas fa-check-circle"></i>
+              <span>No credit card required</span>
+            </div>
+            <div class="cta-feature">
+              <i class="fas fa-check-circle"></i>
+              <span>Cancel anytime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="logo-wrapper">
+              <div class="logo-img">
+                <img src="images/price pulse.png" alt="PricePulse Logo" />
+              </div>
+              <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+            </div>
+            <p class="footer-description">
+              Your intelligent shopping assistant that helps you track prices,
+              catch deals, and save money across all major e-commerce platforms.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <div class="link-group">
+              <h4>Product</h4>
+              <a href="features.html">Features</a>
+              <a href="how-it-works.html">How It Works</a>
+              <a href="#">Pricing</a>
+              <a href="#">API</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Blog</a>
+              <a href="#">Careers</a>
+              <a href="contact.html">Contact</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Support</h4>
+              <a href="#">Help Center</a>
+              <a href="#">FAQ</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Platforms</h4>
+              <a href="#">Jumia Tracker</a>
+              <a href="#">Konga Tracker</a>
+              <a href="#">Amazon Tracker</a>
+              <a href="#">eBay Tracker</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>
+            &copy; 2023 PricePulse. All rights reserved. Made with
+            <i class="fas fa-heart" style="color: #ffd700"></i> for smart
+            shoppers.
+          </p>
+          <div class="footer-extra">
+            <span>🇳🇬 Proudly serving African shoppers</span>
+            <div class="secure-badge">
+              <i class="fas fa-lock"></i>
+              <span>Secure & Private</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="features.js"></script>
+  </body>
+</html>
