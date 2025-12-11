@@ -1,0 +1,461 @@
+contact.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us - PricePulse | Get in Touch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="contact.css" />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo-wrapper">
+          <div class="logo-img">
+            <img src="images/price pulse.png" alt="PricePulse Logo" />
+          </div>
+          <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+        </div>
+
+        <div class="nav-menu" id="navMenu">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="features.html" class="nav-link">Features</a>
+          <a href="how-it-works.html" class="nav-link">How It Works</a>
+          <a href="contact.html" class="nav-link active">Contact</a>
+          <div class="nav-buttons">
+            <a href="signin.html" class="btn-login">Login</a>
+            <a href="signup.html" class="btn-signup">Sign Up Free</a>
+          </div>
+        </div>
+
+        <button class="hamburger" id="hamburger">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="contact-hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span>📞 GET IN TOUCH</span>
+          </div>
+          <h1 class="hero-title">
+            Contact <span class="highlight">PricePulse</span>
+          </h1>
+          <p class="hero-subtitle">
+            Have questions, feedback, or need support? We're here to help. Reach
+            out to our team and we'll get back to you as soon as possible.
+          </p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <i class="fas fa-clock"></i>
+              <div>
+                <h3>24h Response</h3>
+                <p>Average reply time</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-headset"></i>
+              <div>
+                <h3>97% Satisfaction</h3>
+                <p>Customer support rating</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-globe"></i>
+              <div>
+                <h3>Global Support</h3>
+                <p>Available worldwide</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+      <div class="container">
+        <div class="contact-container">
+          <!-- Contact Form -->
+          <div class="contact-form-wrapper">
+            <div class="form-header">
+              <h2>Send us a Message</h2>
+              <p>
+                Fill out the form below and we'll get back to you within 24
+                hours
+              </p>
+            </div>
+
+            <form id="contactForm" class="contact-form">
+              <div class="form-group">
+                <label for="name">
+                  <i class="fas fa-user"></i>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  placeholder="Enter your full name"
+                  required
+                />
+                <div class="error-message" id="nameError"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="email">
+                  <i class="fas fa-envelope"></i>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email address"
+                  required
+                />
+                <div class="error-message" id="emailError"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="subject">
+                  <i class="fas fa-tag"></i>
+                  Subject
+                </label>
+                <select id="subject" name="subject" required>
+                  <option value="" disabled selected>Select a subject</option>
+                  <option value="general">General Inquiry</option>
+                  <option value="support">Technical Support</option>
+                  <option value="billing">Billing Question</option>
+                  <option value="feature">Feature Request</option>
+                  <option value="partnership">Partnership Opportunity</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="error-message" id="subjectError"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="message">
+                  <i class="fas fa-comment"></i>
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="6"
+                  placeholder="Tell us how we can help you..."
+                  required
+                ></textarea>
+                <div class="error-message" id="messageError"></div>
+              </div>
+
+              <div class="form-group">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="newsletter" name="newsletter" />
+                  <label for="newsletter">
+                    Send me updates about PricePulse features and tips
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary btn-submit">
+                <i class="fas fa-paper-plane"></i>
+                Send Message
+              </button>
+            </form>
+
+            <div class="form-success" id="successMessage">
+              <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h3>Message Sent Successfully!</h3>
+              <p>
+                Thank you for contacting us. We'll get back to you within 24
+                hours.
+              </p>
+              <button class="btn-secondary" id="sendAnother">
+                Send Another Message
+              </button>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="contact-info-wrapper">
+            <div class="info-card">
+              <div class="info-header">
+                <h3>Contact Information</h3>
+                <p>Reach out through any of these channels</p>
+              </div>
+
+              <div class="info-items">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                  <div class="info-content">
+                    <h4>Email Us</h4>
+                    <p>For general inquiries and support</p>
+                    <a href="mailto:support@pricepulse.com" class="info-link">
+                      support@pricepulse.com
+                    </a>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-headset"></i>
+                  </div>
+                  <div class="info-content">
+                    <h4>Help Center</h4>
+                    <p>Find answers in our knowledge base</p>
+                    <a href="#" class="info-link">
+                      Visit Help Center
+                      <i class="fas fa-arrow-right"></i>
+                    </a>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </div>
+                  <div class="info-content">
+                    <h4>Our Office</h4>
+                    <p>Based in Lagos, serving globally</p>
+                    <span class="info-text">
+                      123 Tech Street, Lagos Island<br />
+                      Lagos, Nigeria
+                    </span>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <div class="info-content">
+                    <h4>Support Hours</h4>
+                    <p>We're here when you need us</p>
+                    <span class="info-text">
+                      Monday - Friday: 9AM - 6PM WAT<br />
+                      Saturday: 10AM - 4PM WAT
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="social-contact">
+                <h4>Connect With Us</h4>
+                <p>Follow us for updates and announcements</p>
+                <div class="social-links">
+                  <a href="#" class="social-link twitter">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                  </a>
+                  <a href="#" class="social-link facebook">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Facebook</span>
+                  </a>
+                  <a href="#" class="social-link instagram">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                  </a>
+                  <a href="#" class="social-link linkedin">
+                    <i class="fab fa-linkedin-in"></i>
+                    <span>LinkedIn</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Preview -->
+    <section class="faq-preview">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            Common <span class="highlight">Questions</span>
+          </h2>
+          <p class="section-subtitle">
+            Quick answers to frequently asked questions
+          </p>
+        </div>
+
+        <div class="faq-grid">
+          <div class="faq-item">
+            <h3>How do I reset my password?</h3>
+            <p>
+              Click "Forgot Password" on the login page or visit your account
+              settings to reset your password.
+            </p>
+            <a href="#" class="faq-link">
+              Learn more
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="faq-item">
+            <h3>Can I track products from any country?</h3>
+            <p>
+              We currently support Nigeria, Kenya, Ghana, South Africa, and the
+              United States, with more countries coming soon.
+            </p>
+            <a href="#" class="faq-link">
+              See supported regions
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="faq-item">
+            <h3>How do price alerts work?</h3>
+            <p>
+              Set your target price and choose notification preferences. We'll
+              alert you when prices drop to your target.
+            </p>
+            <a href="how-it-works.html" class="faq-link">
+              How It Works
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="faq-item">
+            <h3>Is my payment information secure?</h3>
+            <p>
+              Yes, we use bank-level encryption and never store your complete
+              payment details on our servers.
+            </p>
+            <a href="#" class="faq-link">
+              Security Policy
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="faq-cta">
+          <p>Didn't find your answer?</p>
+          <a href="#" class="btn-secondary">
+            <i class="fas fa-question-circle"></i>
+            Visit Full FAQ
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="contact-cta">
+      <div class="container">
+        <div class="cta-container">
+          <h2>Ready to Start Saving with PricePulse?</h2>
+          <p>Join thousands of smart shoppers who never overpay</p>
+          <div class="cta-buttons">
+            <a href="signup.html" class="btn-primary btn-large">
+              <i class="fas fa-rocket"></i>
+              Start Free Trial
+            </a>
+            <a href="features.html" class="btn-secondary btn-large">
+              <i class="fas fa-play-circle"></i>
+              Watch Demo
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="logo-wrapper">
+              <div class="logo-img">
+                <img src="images/price pulse.png" alt="PricePulse Logo" />
+              </div>
+              <a href="index.html" class="logo-text">Price<span>Pulse</span></a>
+            </div>
+            <p class="footer-description">
+              Your intelligent shopping assistant that helps you track prices,
+              catch deals, and save money across all major e-commerce platforms.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <div class="link-group">
+              <h4>Product</h4>
+              <a href="features.html">Features</a>
+              <a href="how-it-works.html">How It Works</a>
+              <a href="#">Pricing</a>
+              <a href="#">API</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Blog</a>
+              <a href="#">Careers</a>
+              <a href="contact.html">Contact</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Support</h4>
+              <a href="#">Help Center</a>
+              <a href="#">FAQ</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+            </div>
+
+            <div class="link-group">
+              <h4>Platforms</h4>
+              <a href="#">Jumia Tracker</a>
+              <a href="#">Konga Tracker</a>
+              <a href="#">Amazon Tracker</a>
+              <a href="#">eBay Tracker</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>
+            &copy; 2023 PricePulse. All rights reserved. Made with
+            <i class="fas fa-heart" style="color: #ffd700"></i> for smart
+            shoppers.
+          </p>
+          <div class="footer-extra">
+            <span>🇳🇬 Proudly serving African shoppers</span>
+            <div class="secure-badge">
+              <i class="fas fa-lock"></i>
+              <span>Secure & Private</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="contact.js"></script>
+  </body>
+</html>
