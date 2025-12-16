@@ -311,3 +311,561 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordInput.addEventListener('blur', validatePassword);
     confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
 });
+
+// Configuration
+const API_BASE_URL = 'http://localhost:8000';
+const SIGNUP_ENDPOINT = `${API_BASE_URL}/users/signup`;
+
+// Toast Notification System
+class ToastNotification {
+    constructor() {
+        this.container = document.createElement('div');
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+    }
+
+    show(message, type = 'info', title = '', duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type]} toast-icon"></i>
+            <div class="toast-content">
+                ${title ? `<div class="toast-title">${title}</div>` : ''}
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => this.hide(toast));
+
+        this.container.appendChild(toast);
+
+        if (duration > 0) {
+            setTimeout(() => this.hide(toast), duration);
+        }
+
+        return toast;
+    }
+
+    hide(toast) {
+        toast.classList.add('hide');
+        setTimeout(() => {
+            if (toast.parentNode === this.container) {
+                this.container.removeChild(toast);
+            }
+        }, 300);
+    }
+
+    success(message, title = 'Success!') {
+        return this.show(message, 'success', title);
+    }
+
+    error(message, title = 'Error!') {
+        return this.show(message, 'error', title);
+    }
+}
+
+// Initialize toast system
+const toast = new ToastNotification();
+
+// Form Validator
+class FormValidator {
+    showError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    }
+
+    clearError(elementId) {
+        const errorElement = document.getElementById(elementId);
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.style.display = 'none';
+        }
+    }
+
+    validateUsername(username) {
+        const regex = /^[a-zA-Z0-9_]+$/;
+        return regex.test(username);
+    }
+
+    validateEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+
+    validatePassword(password) {
+        return password.length >= 6;
+    }
+
+    validateConfirmPassword(password, confirmPassword) {
+        return password === confirmPassword;
+    }
+}
+
+const validator = new FormValidator();
+
+// Main Signup Handler
+class SignupHandler {
+    constructor() {
+        this.form = document.getElementById('signupForm');
+        this.signupBtn = document.getElementById('signupBtn');
+        
+        this.initializeEventListeners();
+    }
+
+    initializeEventListeners() {
+        // Form submission
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        
+        // Password toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        
+        if (togglePassword) {
+            togglePassword.addEventListener('click', () => this.togglePasswordVisibility('password'));
+        }
+        
+        if (toggleConfirmPassword) {
+            toggleConfirmPassword.addEventListener('click', () => this.togglePasswordVisibility('confirmPassword'));
+        }
+        
+        // Real-time validation
+        this.initializeRealTimeValidation();
+    }
+
+    initializeRealTimeValidation() {
+        // Username validation
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+            usernameInput.addEventListener('blur', () => {
+                const username = usernameInput.value.trim();
+                if (username && !validator.validateUsername(username)) {
+                    validator.showError('usernameError', 'Only letters, numbers, and underscores allowed');
+                } else {
+                    validator.clearError('usernameError');
+                }
+            });
+        }
+
+        // Email validation
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            emailInput.addEventListener('blur', () => {
+                const email = emailInput.value.trim();
+                if (email && !validator.validateEmail(email)) {
+                    validator.showError('emailError', 'Please enter a valid email');
+                } else {
+                    validator.clearError('emailError');
+                }
+            });
+        }
+
+        // Password validation
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', () => {
+                const password = passwordInput.value;
+                if (password && !validator.validatePassword(password)) {
+                    validator.showError('passwordError', 'Password must be at least 6 characters');
+                } else {
+                    validator.clearError('passwordError');
+                }
+            });
+        }
+
+        // Confirm password validation
+        const confirmInput = document.getElementById('confirmPassword');
+        if (confirmInput && passwordInput) {
+            confirmInput.addEventListener('blur', () => {
+                const password = passwordInput.value;
+                const confirmPassword = confirmInput.value;
+                if (confirmPassword && !validator.validateConfirmPassword(password, confirmPassword)) {
+                    validator.showError('confirmPasswordError', 'Passwords do not match');
+                } else {
+                    validator.clearError('confirmPasswordError');
+                }
+            });
+        }
+    }
+
+    togglePasswordVisibility(field) {
+        const input = document.getElementById(field);
+        const button = document.getElementById(`toggle${field.charAt(0).toUpperCase() + field.slice(1)}`);
+        
+        if (input && button) {
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    validateForm() {
+        let isValid = true;
+        
+        // Get form values
+        const fullName = document.getElementById('fullName').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const termsChecked = document.getElementById('terms').checked;
+        
+        // Clear previous errors
+        validator.clearError('usernameError');
+        validator.clearError('emailError');
+        validator.clearError('passwordError');
+        validator.clearError('confirmPasswordError');
+        
+        // Validate full name
+        if (!fullName) {
+            toast.error('Please enter your full name', 'Validation Error');
+            isValid = false;
+        }
+        
+        // Validate username
+        if (!username) {
+            validator.showError('usernameError', 'Username is required');
+            isValid = false;
+        } else if (!validator.validateUsername(username)) {
+            validator.showError('usernameError', 'Only letters, numbers, and underscores allowed');
+            isValid = false;
+        }
+        
+        // Validate email
+        if (!email) {
+            validator.showError('emailError', 'Email is required');
+            isValid = false;
+        } else if (!validator.validateEmail(email)) {
+            validator.showError('emailError', 'Please enter a valid email');
+            isValid = false;
+        }
+        
+        // Validate password
+        if (!password) {
+            validator.showError('passwordError', 'Password is required');
+            isValid = false;
+        } else if (!validator.validatePassword(password)) {
+            validator.showError('passwordError', 'Password must be at least 6 characters');
+            isValid = false;
+        }
+        
+        // Validate confirm password
+        if (!confirmPassword) {
+            validator.showError('confirmPasswordError', 'Please confirm your password');
+            isValid = false;
+        } else if (!validator.validateConfirmPassword(password, confirmPassword)) {
+            validator.showError('confirmPasswordError', 'Passwords do not match');
+            isValid = false;
+        }
+        
+        // Validate terms
+        if (!termsChecked) {
+            toast.error('You must agree to the terms and conditions', 'Terms Required');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    async handleSubmit(e) {
+        e.preventDefault();
+        
+        // Validate form
+        if (!this.validateForm()) {
+            return;
+        }
+        
+        // Disable submit button and show loading state
+        this.setLoading(true);
+        
+        try {
+            // Collect form data
+            const formData = new FormData();
+            formData.append('full_name', document.getElementById('fullName').value.trim());
+            formData.append('username', document.getElementById('username').value.trim());
+            formData.append('email', document.getElementById('email').value.trim());
+            formData.append('password', document.getElementById('password').value);
+            formData.append('confirm_password', document.getElementById('confirmPassword').value);
+            
+            console.log('Sending signup request to:', SIGNUP_ENDPOINT);
+            console.log('Form data:', {
+                full_name: document.getElementById('fullName').value.trim(),
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim()
+            });
+            
+            // Send request to backend
+            const response = await fetch(SIGNUP_ENDPOINT, {
+                method: 'POST',
+                body: formData
+            });
+            
+            console.log('Response status:', response.status);
+            
+            let data;
+            try {
+                data = await response.json();
+                console.log('Response data:', data);
+            } catch (jsonError) {
+                console.error('Failed to parse JSON response:', jsonError);
+                throw new Error('Server returned invalid response');
+            }
+            
+            if (response.ok) {
+                // Success
+                console.log('Signup successful!', data);
+                this.handleSuccess(data);
+            } else {
+                // Error from backend
+                console.error('Signup failed:', data);
+                const errorMessage = data.detail || 
+                                    data.message || 
+                                    data.error || 
+                                    `Signup failed (Status: ${response.status})`;
+                this.handleError(errorMessage);
+            }
+        } catch (error) {
+            // Network or other errors
+            console.error('Signup error:', error);
+            this.handleError(error.message || 'Network error. Please check your connection.');
+        } finally {
+            // Re-enable submit button
+            this.setLoading(false);
+        }
+    }
+
+    handleSuccess(data) {
+        // Store user data
+        if (data) {
+            localStorage.setItem('user', JSON.stringify(data));
+            localStorage.setItem('isAuthenticated', 'true');
+            
+            // Generate a token if not provided
+            if (!data.token) {
+                const tempToken = 'temp-auth-' + Date.now();
+                localStorage.setItem('token', tempToken);
+            } else {
+                localStorage.setItem('token', data.token);
+            }
+        }
+        
+        // Show success message
+        toast.success(
+            'Account created successfully! Redirecting to dashboard...',
+            'Welcome to PricePulse!'
+        );
+        
+        // Reset form
+        this.form.reset();
+        
+        // Clear all error messages
+        document.querySelectorAll('.error-message').forEach(error => {
+            error.textContent = '';
+        });
+        
+        // Reset password toggles
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
+        if (passwordInput) passwordInput.type = 'password';
+        if (confirmInput) confirmInput.type = 'password';
+        
+        // Reset eye icons
+        const eyeIcons = document.querySelectorAll('.toggle-password i');
+        eyeIcons.forEach(icon => {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        });
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+            window.location.href = '/frontend/html/dashboard.html';
+        }, 2000);
+    }
+
+    handleError(errorMessage) {
+        console.error('Signup error:', errorMessage);
+        toast.error(errorMessage, 'Signup Failed');
+        
+        // Highlight form for attention
+        this.form.classList.add('shake');
+        setTimeout(() => {
+            this.form.classList.remove('shake');
+        }, 500);
+    }
+
+    setLoading(isLoading) {
+        const button = this.signupBtn;
+        if (!button) return;
+        
+        if (isLoading) {
+            button.disabled = true;
+            button.innerHTML = '<span>Creating Account...</span>';
+            button.style.opacity = '0.7';
+        } else {
+            button.disabled = false;
+            button.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
+            button.style.opacity = '1';
+        }
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new SignupHandler();
+    
+    // Auto-hide error messages on input
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+            const errorId = input.id + 'Error';
+            validator.clearError(errorId);
+        });
+    });
+});
+
+// Add CSS for toast notifications and shake animation
+const style = document.createElement('style');
+style.textContent = `
+    .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
+        width: 100%;
+    }
+    
+    .toast {
+        padding: 16px 20px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.95);
+        border-left: 4px solid;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transform: translateX(100%);
+        opacity: 0;
+        animation: slideIn 0.3s forwards;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .toast.success {
+        border-left-color: #10B981;
+    }
+    
+    .toast.error {
+        border-left-color: #EF4444;
+    }
+    
+    .toast-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .toast.success .toast-icon {
+        color: #10B981;
+    }
+    
+    .toast.error .toast-icon {
+        color: #EF4444;
+    }
+    
+    .toast-content {
+        flex: 1;
+    }
+    
+    .toast-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--light);
+        font-size: 1rem;
+    }
+    
+    .toast-message {
+        font-size: 0.9rem;
+        color: var(--light-gray);
+        line-height: 1.4;
+    }
+    
+    .toast-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 4px;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .toast-close:hover {
+        color: var(--light);
+    }
+    
+    @keyframes slideIn {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .toast.hide {
+        animation: slideOut 0.3s forwards;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @media (max-width: 768px) {
+        .toast-container {
+            top: 80px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+        
+        .toast {
+            padding: 14px 16px;
+        }
+    }
+`;
+document.head.appendChild(style);
