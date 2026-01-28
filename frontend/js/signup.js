@@ -12,7 +12,7 @@ const isLocal =
 
 const API_BASE_URL = isLocal
   ? "http://localhost:8000"
-  : "https://https://zyneth-backend.onrender.com";
+  : "https://zyneth-backend.onrender.com";
 
 const SIGNUP_ENDPOINT = `${API_BASE_URL}/users/signup`;
 const VERIFY_OTP_ENDPOINT = `${API_BASE_URL}/users/verify-otp`;
