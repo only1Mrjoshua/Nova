@@ -62,8 +62,6 @@ function initTabs() {
                 'data': 'Data Management',
                 'account': 'Account Settings'
             };
-            
-            showToast(`Switched to ${tabNames[tabId] || tabId}`, 'info');
         });
     });
     
