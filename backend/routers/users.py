@@ -800,6 +800,142 @@ async def google_auth_callback(request: GoogleAuthRequest):
             detail=f"Google authentication failed: {str(e)}"
         )
 
+@router.get("/auth/google/callback")
+async def google_callback_get(
+    request: Request,
+    code: str = None,
+    error: str = None,
+    error_description: str = None
+):
+    """
+    Handle Google OAuth redirect (GET request with code in query params)
+    This is what Google actually calls when redirecting back
+    """
+    try:
+        # If there's an error from Google
+        if error:
+            return HTMLResponse(f"""
+                <html>
+                <body>
+                    <script>
+                        // Send error to parent window
+                        window.opener.postMessage({{
+                            type: 'google-auth-error',
+                            error: '{error}',
+                            error_description: '{error_description or ""}'
+                        }}, '*');
+                        
+                        // Close window after 1 second
+                        setTimeout(() => window.close(), 1000);
+                    </script>
+                    <h3>Authentication Error: {error}</h3>
+                    <p>{error_description or ''}</p>
+                    <p>This window will close automatically.</p>
+                </body>
+                </html>
+            """)
+        
+        # If we have a code
+        if code:
+            return HTMLResponse(f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Google Authentication</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background: #0f172a;
+                            color: white;
+                        }}
+                        .container {{
+                            text-align: center;
+                            padding: 40px;
+                        }}
+                        .spinner {{
+                            width: 40px;
+                            height: 40px;
+                            border: 4px solid rgba(255, 255, 255, 0.1);
+                            border-top-color: #3b82f6;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            margin: 0 auto 20px;
+                        }}
+                        @keyframes spin {{
+                            to {{ transform: rotate(360deg); }}
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="spinner"></div>
+                        <div id="message">Processing authentication...</div>
+                    </div>
+                    
+                    <script>
+                        // Send code to parent window
+                        try {{
+                            window.opener.postMessage({{
+                                type: 'google-auth-success',
+                                code: '{code}'
+                            }}, '*');
+                            
+                            console.log('Code sent to parent window');
+                            
+                            // Close window after sending
+                            setTimeout(() => {{
+                                try {{
+                                    window.close();
+                                }} catch (e) {{
+                                    document.getElementById('message').textContent = 
+                                        '✅ Success! You can close this window.';
+                                }}
+                            }}, 1000);
+                            
+                        }} catch (err) {{
+                            console.error('Error:', err);
+                            document.getElementById('message').textContent = 
+                                'Error: ' + (err.message || 'Failed to communicate with parent window');
+                                
+                            // Fallback: Show the code for manual copying
+                            setTimeout(() => {{
+                                document.getElementById('message').innerHTML = 
+                                    '<p>Please copy this code and return to the app:</p>' +
+                                    '<code style="background: #1e293b; padding: 10px; display: block; margin: 10px 0;">' + 
+                                    '{code}' +
+                                    '</code>';
+                            }}, 2000);
+                        }}
+                    </script>
+                </body>
+                </html>
+            """)
+        
+        # No code or error
+        return HTMLResponse("""
+            <html>
+            <body>
+                <h3>No authentication data received</h3>
+                <p>Please try again.</p>
+            </body>
+            </html>
+        """)
+        
+    except Exception as e:
+        return HTMLResponse(f"""
+            <html>
+            <body>
+                <h3>Server Error</h3>
+                <p>{str(e)}</p>
+            </body>
+            </html>
+        """)
+
 @router.post("/users/auth/google/web", response_model=GoogleAuthResponse)  # Changed endpoint to match frontend
 async def google_auth_web(request: GoogleAuthRequest):
     """
