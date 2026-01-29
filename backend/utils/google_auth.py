@@ -198,7 +198,6 @@ class GoogleOAuth:
             "environment": os.getenv("ENVIRONMENT", "unknown"),
             "is_render": bool(os.getenv("RENDER")),
             "render_service_id": os.getenv("RENDER_SERVICE_ID"),
-            "render_service_name": os.getenv("RENDER_SERVICE_NAME")
         }
 
 # Initialize Google OAuth client
