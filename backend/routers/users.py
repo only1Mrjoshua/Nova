@@ -667,35 +667,10 @@ async def admin_create_user(
 
 # google OAuth endpoints
 @router.get("/auth/google")
-async def google_auth_redirect(request: Request):
-    """Redirect directly to Google OAuth"""
-    
-    # Get redirect URI based on environment
-    if os.getenv("ENVIRONMENT") == "production":
-        redirect_uri = os.getenv("GOOGLE_REDIRECT_URI_PROD")
-    else:
-        redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
-    
-    # Optional: Generate a state parameter for CSRF protection
-    import secrets
-    state = secrets.token_urlsafe(16)
-    request.session["oauth_state"] = state  # If using sessions
-    
-    # Build Google OAuth URL
-    params = {
-        "client_id": os.getenv("GOOGLE_CLIENT_ID"),
-        "redirect_uri": redirect_uri,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "access_type": "offline",
-        "prompt": "consent",
-        "state": state
-    }
-    
-    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
-    
-    # Redirect directly to Google
-    return RedirectResponse(url=auth_url)
+async def google_auth_redirect(state: Optional[str] = None):
+    """Redirect to Google OAuth page"""
+    auth_url = google_oauth.get_authorization_url(state)
+    return {"auth_url": auth_url}
 
 @router.post("/auth/google/callback", response_model=GoogleAuthResponse)
 async def google_auth_callback(request: GoogleAuthRequest):
