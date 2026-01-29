@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Authentication</title>
+  </head>
+  <body>
+    <script>
+      // Parse the URL to get the authorization code
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const state = urlParams.get("state");
+      const error = urlParams.get("error");
+
+      if (error) {
+        // Send error message to parent window
+        window.opener.postMessage(
+          {
+            type: "GOOGLE_AUTH_ERROR",
+            message: "Google authentication failed: " + error,
+          },
+          window.location.origin,
+        );
+      } else if (code) {
+        // Send success message to parent window
+        window.opener.postMessage(
+          {
+            type: "GOOGLE_AUTH_SUCCESS",
+            code: code,
+            state: state,
+          },
+          window.location.origin,
+        );
+      } else {
+        window.opener.postMessage(
+          {
+            type: "GOOGLE_AUTH_ERROR",
+            message: "No authorization code received",
+          },
+          window.location.origin,
+        );
+      }
+
+      // Close this window
+      window.close();
+    </script>
+  </body>
+</html>
