@@ -1108,3 +1108,22 @@ async def google_auth_callback_get(request: Request):
       window.close();
     </script>
     """)
+
+@router.get("/auth/google/config-check")
+async def google_config_check():
+    """Debug endpoint to check Google OAuth configuration"""
+    if not google_oauth:
+        return {"error": "Google OAuth not initialized"}
+    
+    return {
+        "client_id_preview": f"{google_oauth.client_id[:20]}..." if google_oauth.client_id else None,
+        "client_id_full_length": len(google_oauth.client_id) if google_oauth.client_id else 0,
+        "redirect_uri": google_oauth.redirect_uri,
+        "environment": os.getenv("ENVIRONMENT", "unknown"),
+        "is_render": bool(os.getenv("RENDER")),
+        "google_cloud_console_link": "https://console.cloud.google.com/apis/credentials",
+        "oauth_consent_screen_link": "https://console.cloud.google.com/apis/credentials/consent",
+        "note": "The display name issue is in Google Cloud Console OAuth consent screen, not this code",
+        "your_app_url": "https://zyneth.shop",
+        "backend_url": "https://zyneth-backend.onrender.com"
+    }
