@@ -1108,17 +1108,3 @@ async def google_auth_callback_get(request: Request):
       window.close();
     </script>
     """)
-
-@router.get("/auth/google/debug")
-async def debug_google_config():
-    """Debug Google OAuth configuration"""
-    return {
-        "client_id": os.getenv("GOOGLE_CLIENT_ID", "NOT SET"),
-        "client_id_length": len(os.getenv("GOOGLE_CLIENT_ID", "")),
-        "has_client_secret": bool(os.getenv("GOOGLE_CLIENT_SECRET")),
-        "redirect_uri": google_oauth.redirect_uri if google_oauth else "NOT INITIALIZED",
-        "environment": os.getenv("ENVIRONMENT", "development"),
-        "render": bool(os.getenv("RENDER")),
-        "backend_url": "https://zyneth-backend.onrender.com",
-        "message": "Check if redirect_uri matches Google Cloud Console"
-    }
