@@ -16,6 +16,8 @@ const API_BASE_URL = isLocal
 
 const LOGIN_ENDPOINT = `${API_BASE_URL}/users/login`;
 const ME_ENDPOINT = `${API_BASE_URL}/users/me`;
+const GOOGLE_AUTH_URL_ENDPOINT = `${API_BASE_URL}/users/auth/google`;
+const GOOGLE_AUTH_CALLBACK_ENDPOINT = `${API_BASE_URL}/users/auth/google/web`;
 
 /* =========================
    DOM ELEMENTS
@@ -171,6 +173,231 @@ async function validateTokenWithBackend(token) {
 }
 
 /* =========================
+   GOOGLE SIGN-IN HANDLER
+========================= */
+class GoogleSignInHandler {
+  constructor() {
+    this.googleBtn = googleSignInBtn;
+    this.initialize();
+  }
+
+  initialize() {
+    if (!this.googleBtn) {
+      console.error("Google button not found!");
+      return;
+    }
+
+    // Remove any existing event listeners by cloning the button
+    const newButton = this.googleBtn.cloneNode(true);
+    this.googleBtn.parentNode.replaceChild(newButton, this.googleBtn);
+    this.googleBtn = newButton;
+
+    // Add click event listener
+    this.googleBtn.addEventListener("click", (e) => this.handleGoogleSignIn(e));
+    
+    console.log("Google Sign-In handler initialized");
+  }
+
+  async handleGoogleSignIn(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log("Google Sign-In button clicked");
+    
+    // Disable button and show loading
+    const originalHTML = this.googleBtn.innerHTML;
+    this.googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Connecting...</span>';
+    this.googleBtn.disabled = true;
+    
+    // Show loading overlay
+    loadingOverlay.show("Connecting to Google...");
+    
+    try {
+      // Get Google OAuth URL from backend
+      const response = await fetch(GOOGLE_AUTH_URL_ENDPOINT, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to get Google auth URL:", errorText);
+        throw new Error(`Failed to get Google auth URL (Status: ${response.status})`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.auth_url) {
+        throw new Error("No auth URL returned from server");
+      }
+      
+      console.log("Google auth URL received:", data.auth_url);
+      
+      // Open Google OAuth in a popup
+      this.openGooglePopup(data.auth_url);
+      
+    } catch (error) {
+      console.error("Google auth error:", error);
+      toast.error("Failed to start Google sign-in: " + error.message, "Error");
+      
+      // Restore button
+      this.googleBtn.innerHTML = originalHTML;
+      this.googleBtn.disabled = false;
+      loadingOverlay.hide();
+    }
+  }
+
+  openGooglePopup(authUrl) {
+    const width = 500;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    
+    console.log("Opening Google popup:", authUrl);
+    
+    const popup = window.open(
+      authUrl,
+      "Google Sign-In",
+      `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`
+    );
+
+    if (!popup) {
+      toast.error("Popup blocked! Please allow popups for this site.", "Popup Blocked");
+      
+      // Restore button
+      const originalHTML = '<i class="fab fa-google"></i><span>Sign in with Google</span>';
+      this.googleBtn.innerHTML = originalHTML;
+      this.googleBtn.disabled = false;
+      loadingOverlay.hide();
+      return;
+    }
+
+    // Listen for messages from popup
+    const messageHandler = (event) => {
+      // For development, we'll accept messages from any origin
+      // In production, you should check: if (event.origin !== window.location.origin) return;
+      
+      console.log("Message received from popup:", event.data);
+      
+      if (event.data && event.data.type === "GOOGLE_AUTH_SUCCESS") {
+        console.log("Google auth success, code received");
+        this.handleGoogleAuthSuccess(event.data);
+        if (popup) popup.close();
+        window.removeEventListener("message", messageHandler);
+      } else if (event.data && event.data.type === "GOOGLE_AUTH_ERROR") {
+        console.error("Google auth error:", event.data.message);
+        toast.error(event.data.message || "Google authentication failed", "Error");
+        if (popup) popup.close();
+        window.removeEventListener("message", messageHandler);
+        
+        // Restore button
+        const originalHTML = '<i class="fab fa-google"></i><span>Sign in with Google</span>';
+        this.googleBtn.innerHTML = originalHTML;
+        this.googleBtn.disabled = false;
+        loadingOverlay.hide();
+      }
+    };
+
+    window.addEventListener("message", messageHandler, false);
+
+    // Check if popup is closed
+    const checkPopup = setInterval(() => {
+      if (popup && popup.closed) {
+        clearInterval(checkPopup);
+        window.removeEventListener("message", messageHandler);
+        
+        // Restore button if popup closed without completing auth
+        if (!localStorage.getItem("token")) {
+          const originalHTML = '<i class="fab fa-google"></i><span>Sign in with Google</span>';
+          this.googleBtn.innerHTML = originalHTML;
+          this.googleBtn.disabled = false;
+          loadingOverlay.hide();
+          console.log("Popup closed by user");
+        }
+      }
+    }, 500);
+  }
+
+  async handleGoogleAuthSuccess(data) {
+    try {
+      loadingOverlay.show("Completing Google sign-in...");
+      
+      console.log("Processing Google auth code:", data.code);
+      
+      // Send authorization code to backend
+      const response = await fetch(GOOGLE_AUTH_CALLBACK_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: data.code,
+          state: data.state || ""
+        }),
+      });
+
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (jsonError) {
+        console.error("Failed to parse JSON response:", jsonError);
+        throw new Error("Invalid server response");
+      }
+
+      if (!response.ok) {
+        console.error("Google auth failed:", responseData);
+        throw new Error(responseData.detail || responseData.message || "Google authentication failed");
+      }
+
+      console.log("Google auth successful:", responseData);
+      
+      // Store auth data
+      localStorage.setItem("token", responseData.access_token);
+      localStorage.setItem("user", JSON.stringify(responseData.user));
+      localStorage.setItem("isAuthenticated", "true");
+      
+      if (responseData.expires_in) {
+        const expiresAt = Date.now() + responseData.expires_in * 1000;
+        localStorage.setItem("token_expires_at", String(expiresAt));
+      }
+      
+      // Show success message
+      if (responseData.is_new_user) {
+        toast.success("Account created successfully! Welcome to Zyneth!", "Welcome!");
+      } else {
+        toast.success("Welcome back!", "Signed In");
+      }
+      
+      // Restore button
+      const originalHTML = '<i class="fab fa-google"></i><span>Sign in with Google</span>';
+      this.googleBtn.innerHTML = originalHTML;
+      this.googleBtn.disabled = false;
+      
+      // Redirect based on role
+      const redirectUrl = getRedirectUrlByRole(responseData.user.role);
+      
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Google auth processing error:", error);
+      toast.error(error.message || "Google authentication failed", "Error");
+      clearAuthStorage();
+      
+      // Restore button
+      const originalHTML = '<i class="fab fa-google"></i><span>Sign in with Google</span>';
+      this.googleBtn.innerHTML = originalHTML;
+      this.googleBtn.disabled = false;
+    } finally {
+      loadingOverlay.hide();
+    }
+  }
+}
+
+/* =========================
    UI LISTENERS
 ========================= */
 // Toggle password
@@ -232,10 +459,11 @@ passwordInput?.addEventListener("input", function () {
   }
 });
 
-// Google sign-in placeholder
-googleSignInBtn?.addEventListener("click", function () {
-  toast.info("Google sign-in will be available soon!", "Coming Soon");
-});
+// Remove or replace the placeholder Google button handler
+// This is the OLD placeholder - remove it
+// googleSignInBtn?.addEventListener("click", function () {
+//   toast.info("Google sign-in will be available soon!", "Coming Soon");
+// });
 
 // Remember me autofill
 window.addEventListener("load", function () {
@@ -279,7 +507,6 @@ class SigninHandler {
   constructor() {
     this.form = signinForm;
     this.signinBtn = signinButton;
-    this.googleBtn = googleSignInBtn;
 
     this.form?.addEventListener("submit", (e) => this.handleSubmit(e));
   }
@@ -313,12 +540,10 @@ class SigninHandler {
       this.signinBtn.disabled = true;
       this.signinBtn.innerHTML = "<span>Signing In...</span>";
       this.signinBtn.style.opacity = "0.7";
-      if (this.googleBtn) this.googleBtn.disabled = true;
     } else {
       this.signinBtn.disabled = false;
       this.signinBtn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
       this.signinBtn.style.opacity = "1";
-      if (this.googleBtn) this.googleBtn.disabled = false;
     }
   }
 
@@ -413,10 +638,16 @@ class SigninHandler {
    (No more localStorage-only redirects)
 ========================= */
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("Sign-in page loaded");
+  
   // Focus email field
   if (emailInput && !emailInput.value) emailInput.focus();
 
+  // Initialize handlers
   new SigninHandler();
+  new GoogleSignInHandler();
+  
+  console.log("Google button element:", googleSignInBtn);
 
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -540,6 +771,16 @@ style.textContent = `
   20%,40%,60%,80% { transform: translateX(5px); }
 }
 .shake { animation: shake 0.5s ease-in-out; }
+
+/* Google button loading state */
+.btn-google.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-google.loading i.fa-spinner {
+  animation: spin 1s linear infinite;
+}
 
 @media (max-width: 768px) {
   .toast-container { top: 80px; right: 10px; left: 10px; max-width: none; }
