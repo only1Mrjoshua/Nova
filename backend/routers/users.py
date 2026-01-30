@@ -727,7 +727,7 @@ async def google_callback_get(
             return HTMLResponse(content=error_html)
         
         # Code received - redirect back to app with code in URL
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5500")
         redirect_url = f"{frontend_url}?code={code}"
         
         html_content = f"""
