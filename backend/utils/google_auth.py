@@ -23,19 +23,17 @@ class GoogleOAuth:
             raise ValueError("GOOGLE_CLIENT_SECRET is required")
         
         # =============================================
-        # FIXED: Redirect to FRONTEND, not backend!
+        # FIXED: Better redirect URI detection for Render
         # =============================================
         
         # Check for Render environment first (most reliable)
         if os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production":
             logger.info("Detected production/Render environment")
-            # Production: Redirect to FRONTEND domain
-            # CHANGE THIS TO YOUR ACTUAL FRONTEND DOMAIN
-            self.redirect_uri = "https://zyneth.shop/signin.html"  # ← FRONTEND!
+            # Production/Render default
+            self.redirect_uri = "https://zyneth-backend.onrender.com/users/auth/google/callback"
         else:
-            # Local development: Redirect to frontend dev server
-            # CHANGE THIS TO MATCH YOUR FRONTEND DEV SERVER
-            self.redirect_uri = "http://localhost:5500/frontend/signin.html"  # ← FRONTEND DEV!
+            # Local development
+            self.redirect_uri = "http://localhost:8000/users/auth/google/callback"
             logger.info("Detected local development environment")
         
         # Check for explicit environment variable override (highest priority)
@@ -62,7 +60,7 @@ class GoogleOAuth:
         """Generate Google OAuth authorization URL"""
         params = {
             "client_id": self.client_id,
-            "redirect_uri": self.redirect_uri,  # This is what Google shows!
+            "redirect_uri": self.redirect_uri,
             "response_type": "code",
             "scope": "openid email profile",
             "access_type": "offline",
@@ -81,22 +79,18 @@ class GoogleOAuth:
         
         return auth_url
     
-    async def exchange_code_for_token(self, code: str, custom_redirect_uri: Optional[str] = None) -> Dict[str, Any]:
+    async def exchange_code_for_token(self, code: str) -> Dict[str, Any]:
         """Exchange authorization code for access token"""
         token_url = "https://oauth2.googleapis.com/token"
-        
-        # Use custom redirect_uri if provided (for flexibility)
-        redirect_uri_to_use = custom_redirect_uri if custom_redirect_uri else self.redirect_uri
-        
         data = {
             "code": code,
             "client_id": self.client_id,
             "client_secret": self.client_secret,
-            "redirect_uri": redirect_uri_to_use,  # Must match auth URL
+            "redirect_uri": self.redirect_uri,
             "grant_type": "authorization_code"
         }
         
-        logger.info(f"Exchanging code for token with redirect_uri: {redirect_uri_to_use}")
+        logger.info(f"Exchanging code for token with redirect_uri: {self.redirect_uri}")
         logger.debug(f"Code length: {len(code)}")
         
         try:
@@ -104,7 +98,7 @@ class GoogleOAuth:
             
             if response.status_code != 200:
                 logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
-                logger.error(f"Request params - redirect_uri: {redirect_uri_to_use}")
+                logger.error(f"Request params - redirect_uri: {self.redirect_uri}")
                 logger.error(f"Request params - client_id: {self.client_id[:10]}...")
                 raise HTTPException(
                     status_code=400,
@@ -168,11 +162,11 @@ class GoogleOAuth:
                 detail=f"Failed to get user info: {str(e)}"
             )
     
-    async def get_user_info_from_code(self, code: str, custom_redirect_uri: Optional[str] = None) -> Dict[str, Any]:
+    async def get_user_info_from_code(self, code: str) -> Dict[str, Any]:
         """Get user info directly from authorization code"""
         try:
             logger.info(f"Getting user info from code: {code[:20]}...")
-            token_data = await self.exchange_code_for_token(code, custom_redirect_uri)
+            token_data = await self.exchange_code_for_token(code)
             id_token_str = token_data.get("id_token")
             
             if not id_token_str:
