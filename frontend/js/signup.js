@@ -115,87 +115,160 @@ function clearAuthStorage() {
 }
 
 function getRedirectUrlByRole(role) {
-  return role === "admin" ? "admin-dashboard.html" : "dashboard.html";
+  const currentPath = window.location.pathname;
+  const isFrontendFolder = currentPath.includes('/frontend/');
+  
+  if (isLocal && isFrontendFolder) {
+    if (role === "admin") {
+      return "admin-dashboard.html";
+    } else {
+      return "dashboard.html";
+    }
+  }
+  else {
+    if (role === "admin") {
+      return "/admin-dashboard.html";
+    } else {
+      return "/dashboard.html";
+    }
+  }
 }
 
 /* =========================
-   GOOGLE SIGNUP HANDLER
+   GOOGLE SIGNUP HANDLER - DIRECT CALLBACK PROCESSING
 ========================= */
 class GoogleSignupHandler {
   constructor() {
-    this.popupWindow = null;
-    this.authComplete = false;
-    this.popupCheckInterval = null;
-    this.popupClosedByUser = false;
     this.googleBtn = document.getElementById("googleSignupBtn");
     this.setupEventListeners();
+    this.processGoogleCallback();
   }
 
   setupEventListeners() {
-    // Setup Google button click handler
-    this.setupGoogleButton();
-    
-    // Handle messages from popup
-    window.addEventListener('message', this.handlePopupMessage.bind(this));
-  }
+    if (!this.googleBtn) return;
 
-  setupGoogleButton() {
-    if (!this.googleBtn) {
-      console.error("Google signup button not found!");
-      return;
-    }
-
-    // Remove any existing event listeners
     const newButton = this.googleBtn.cloneNode(true);
     this.googleBtn.parentNode.replaceChild(newButton, this.googleBtn);
     this.googleBtn = newButton;
     
-    // Add new event listener
     this.googleBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.handleGoogleSignup();
     });
-    
-    console.log("Google signup button handler initialized");
   }
 
-  handlePopupMessage(event) {
-    // For security, in production you should check: 
-    // if (event.origin !== window.location.origin) return;
+  async processGoogleCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const error = urlParams.get('error');
     
-    const data = event.data;
+    if (!code && !error) return;
     
-    if (data && data.type === 'GOOGLE_AUTH_SUCCESS') {
-      console.log('Google auth success, code received');
-      this.authComplete = true;
-      this.handleGoogleAuthSuccess(data.code);
-    } else if (data && data.type === 'GOOGLE_AUTH_ERROR') {
-      console.error('Google auth error from popup:', data.message);
-      toast.error(data.message || 'Google authentication failed', 'Error');
-      this.resetGoogleButton();
-      loadingOverlay.hide();
+    console.log("Processing Google callback URL directly on signup page");
+    
+    if (error) {
+      toast.error(`Google authentication failed: ${error}`, "Error");
+      this.cleanUrl();
+      return;
+    }
+    
+    if (code) {
+      loadingOverlay.show("Completing Google sign-up...");
+      
+      try {
+        const response = await fetch(GOOGLE_AUTH_CALLBACK_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: code })
+        });
+        
+        let responseData;
+        try {
+          responseData = await response.json();
+        } catch (jsonError) {
+          throw new Error('Invalid server response from Google auth');
+        }
+        
+        if (!response.ok) {
+          const errorMessage = responseData.detail || 
+                              responseData.message || 
+                              responseData.error || 
+                              `Google authentication failed (Status: ${response.status})`;
+          throw new Error(errorMessage);
+        }
+        
+        if (!responseData.access_token || !responseData.user) {
+          throw new Error('Invalid response from server - missing token or user data');
+        }
+        
+        localStorage.setItem("token", responseData.access_token);
+        localStorage.setItem("user", JSON.stringify(responseData.user));
+        localStorage.setItem("isAuthenticated", "true");
+        
+        if (responseData.expires_in) {
+          const expiresAt = Date.now() + responseData.expires_in * 1000;
+          localStorage.setItem("token_expires_at", String(expiresAt));
+        }
+        
+        if (responseData.is_new_user) {
+          toast.success("Account created successfully! Welcome to Zyneth!", "Welcome!");
+        } else {
+          toast.success("Welcome back!", "Signed In");
+        }
+        
+        this.cleanUrl();
+        
+        const redirectUrl = getRedirectUrlByRole(responseData.user.role);
+        
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Google auth processing error:', error);
+        toast.error(error.message || 'Google authentication failed', 'Error');
+        clearAuthStorage();
+        this.cleanUrl();
+        loadingOverlay.hide();
+      }
+    }
+  }
+
+  cleanUrl() {
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  setGoogleButtonLoading(isLoading) {
+    if (!this.googleBtn) return;
+    
+    if (isLoading) {
+      this.googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Redirecting...</span>';
+      this.googleBtn.disabled = true;
+      this.googleBtn.classList.add('disabled');
+    } else {
+      this.googleBtn.innerHTML = '<i class="fab fa-google"></i><span>Sign up with Google</span>';
+      this.googleBtn.disabled = false;
+      this.googleBtn.classList.remove('disabled');
     }
   }
 
   async handleGoogleSignup() {
-    console.log("Google Sign-up button clicked");
+    console.log("Starting Google Sign-Up");
     
-    // Show loading
-    loadingOverlay.show("Connecting to Google...");
-    
-    // Store button state
-    const originalHTML = this.googleBtn.innerHTML;
-    this.googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Connecting...</span>';
-    this.googleBtn.disabled = true;
+    loadingOverlay.show("Redirecting to Google...");
+    this.setGoogleButtonLoading(true);
     
     try {
-      // Get Google OAuth URL from backend
       const response = await fetch(GOOGLE_AUTH_URL_ENDPOINT, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -209,183 +282,13 @@ class GoogleSignupHandler {
         throw new Error("No auth URL returned from server");
       }
       
-      console.log("Google auth URL received");
-      
-      // Open Google OAuth in a popup
-      this.openGooglePopup(data.auth_url);
+      window.location.href = data.auth_url;
       
     } catch (error) {
       console.error("Google auth error:", error);
       toast.error("Failed to start Google sign-up: " + error.message, "Error");
-      this.resetGoogleButton(originalHTML);
+      this.setGoogleButtonLoading(false);
       loadingOverlay.hide();
-    }
-  }
-
-  openGooglePopup(authUrl) {
-    // Close any existing popup
-    if (this.popupWindow && !this.popupWindow.closed) {
-      try {
-        this.popupWindow.close();
-      } catch (e) {
-        // Ignore errors
-      }
-    }
-    
-    // Reset state
-    this.authComplete = false;
-    this.popupClosedByUser = false;
-    
-    // Calculate centered position
-    const width = 500;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    
-    console.log("Opening Google popup");
-    
-    // Open popup - don't set noopener/noreferrer to allow communication
-    this.popupWindow = window.open(
-      authUrl,
-      "GoogleSignUp",
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
-    );
-    
-    if (!this.popupWindow) {
-      toast.error("Popup blocked. Please allow popups for this site.", "Popup Blocked");
-      this.resetGoogleButton();
-      loadingOverlay.hide();
-      return;
-    }
-    
-    // Monitor popup with timeout (not using postMessage ping)
-    this.startPopupMonitoring();
-  }
-
-  startPopupMonitoring() {
-    // Clear any existing interval
-    if (this.popupCheckInterval) {
-      clearInterval(this.popupCheckInterval);
-    }
-    
-    // Simple timeout approach
-    const startTime = Date.now();
-    const timeoutDuration = 120000; // 2 minutes
-    
-    this.popupCheckInterval = setInterval(() => {
-      if (this.authComplete) {
-        clearInterval(this.popupCheckInterval);
-        return;
-      }
-      
-      // Check if timeout exceeded
-      if (Date.now() - startTime > timeoutDuration) {
-        clearInterval(this.popupCheckInterval);
-        this.handlePopupTimeout();
-      }
-    }, 1000);
-  }
-
-  handlePopupTimeout() {
-    this.popupWindow = null;
-    
-    // Only show timeout if auth wasn't completed
-    if (!this.authComplete) {
-      toast.error('Sign-up timed out. Please try again.', 'Timeout');
-      this.resetGoogleButton();
-      loadingOverlay.hide();
-    }
-  }
-
-  async handleGoogleAuthSuccess(code) {
-    try {
-      loadingOverlay.show("Completing Google sign-up...");
-      
-      console.log('Processing Google auth code');
-      
-      // Try with the correct endpoint
-      const response = await fetch(GOOGLE_AUTH_CALLBACK_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: code
-        })
-      });
-      
-      let responseData;
-      try {
-        responseData = await response.json();
-      } catch (jsonError) {
-        console.error('Failed to parse JSON response:', jsonError);
-        throw new Error('Invalid server response from Google auth');
-      }
-      
-      if (!response.ok) {
-        console.error('Google auth failed - Server response:', responseData);
-        
-        // Special handling for the "from_mongo" error
-        if (responseData.detail && responseData.detail.includes('from_mongo')) {
-          throw new Error('Backend configuration error. Please contact support.');
-        }
-        
-        const errorMessage = responseData.detail || 
-                            responseData.message || 
-                            responseData.error || 
-                            `Google authentication failed (Status: ${response.status})`;
-        throw new Error(errorMessage);
-      }
-      
-      console.log('Google auth successful:', responseData);
-      
-      // Validate response structure
-      if (!responseData.access_token || !responseData.user) {
-        console.error('Invalid response structure:', responseData);
-        throw new Error('Invalid response from server - missing token or user data');
-      }
-      
-      // Store auth data
-      localStorage.setItem("token", responseData.access_token);
-      localStorage.setItem("user", JSON.stringify(responseData.user));
-      localStorage.setItem("isAuthenticated", "true");
-      
-      if (responseData.expires_in) {
-        const expiresAt = Date.now() + responseData.expires_in * 1000;
-        localStorage.setItem("token_expires_at", String(expiresAt));
-      }
-      
-      // Show success message
-      if (responseData.is_new_user) {
-        toast.success("Account created successfully! Welcome to Zyneth!", "Welcome!");
-      } else {
-        toast.success("Welcome back!", "Signed In");
-      }
-      
-      // Reset button
-      this.resetGoogleButton();
-      
-      // Redirect based on role
-      const redirectUrl = getRedirectUrlByRole(responseData.user.role);
-      
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Google auth processing error:', error);
-      toast.error(error.message || 'Google authentication failed', 'Error');
-      clearAuthStorage();
-      this.resetGoogleButton();
-    } finally {
-      loadingOverlay.hide();
-    }
-  }
-
-  resetGoogleButton() {
-    if (this.googleBtn) {
-      this.googleBtn.innerHTML = '<i class="fab fa-google"></i><span>Sign up with Google</span>';
-      this.googleBtn.disabled = false;
     }
   }
 }
@@ -433,7 +336,6 @@ class OTPTimer {
     if (countdownElement) {
       countdownElement.textContent = display;
       
-      // Change color when time is running low
       if (this.timeLeft < 30) {
         countdownElement.style.color = 'var(--error)';
       } else if (this.timeLeft < 60) {
@@ -466,7 +368,6 @@ class OTPInputHandler {
 
   initialize() {
     this.inputs.forEach((input, index) => {
-      // Handle input
       input.addEventListener('input', (e) => this.handleInput(e, index));
       input.addEventListener('keydown', (e) => this.handleKeyDown(e, index));
       input.addEventListener('paste', (e) => this.handlePaste(e));
@@ -481,18 +382,15 @@ class OTPInputHandler {
     const input = e.target;
     const value = input.value;
     
-    // Only allow numbers
     if (!/^\d*$/.test(value)) {
       input.value = '';
       return;
     }
     
-    // Auto-focus next input
     if (value.length === 1 && index < this.inputs.length - 1) {
       this.inputs[index + 1].focus();
     }
     
-    // Toggle filled class
     if (value) {
       input.classList.add('filled');
     } else {
@@ -501,7 +399,6 @@ class OTPInputHandler {
   }
 
   handleKeyDown(e, index) {
-    // Handle backspace
     if (e.key === 'Backspace') {
       if (!this.inputs[index].value && index > 0) {
         this.inputs[index - 1].focus();
@@ -510,7 +407,6 @@ class OTPInputHandler {
       }
     }
     
-    // Handle arrow keys
     if (e.key === 'ArrowLeft' && index > 0) {
       this.inputs[index - 1].focus();
       e.preventDefault();
@@ -538,7 +434,6 @@ class OTPInputHandler {
         }
       });
       
-      // Focus the last filled input
       const lastFilledIndex = Math.min(digits.length, this.inputs.length) - 1;
       this.inputs[lastFilledIndex].focus();
     }
@@ -606,30 +501,24 @@ class SignupHandler {
   }
 
   initialize() {
-    // Signup form events
     if (this.form) {
       this.form.addEventListener("submit", (e) => this.handleSignupSubmit(e));
     }
 
-    // OTP form events
     if (this.otpForm) {
       this.otpForm.addEventListener("submit", (e) => this.handleOTPSubmit(e));
     }
 
-    // Button events
     this.resendOtpBtn?.addEventListener("click", () => this.handleResendOTP());
     this.backToSignupBtn?.addEventListener("click", () => this.showSignupForm());
 
-    // Toggle password visibility
     this.togglePasswordBtn?.addEventListener("click", () => this.toggleVisibility(this.password, this.togglePasswordBtn));
     this.toggleConfirmPasswordBtn?.addEventListener("click", () =>
       this.toggleVisibility(this.confirmPassword, this.toggleConfirmPasswordBtn)
     );
 
-    // Initialize Google signup handler
     new GoogleSignupHandler();
 
-    // Re-validate on input
     [this.fullName, this.username, this.email, this.password, this.confirmPassword].forEach((el) => {
       el?.addEventListener("input", () => this.updateButtonState());
       el?.addEventListener("blur", () => this.updateButtonState());
@@ -637,7 +526,6 @@ class SignupHandler {
 
     this.terms?.addEventListener("change", () => this.updateButtonState());
 
-    // Initialize OTP input handler
     if (this.otpForm) {
       this.otpInputHandler = new OTPInputHandler();
     }
@@ -652,13 +540,11 @@ class SignupHandler {
     this.signupWrapper.style.display = 'block';
     this.otpWrapper.style.display = 'none';
     
-    // Reset OTP form
     if (this.otpInputHandler) {
       this.otpInputHandler.clear();
     }
     this.clearFieldError(this.otpError);
     
-    // Stop timer
     if (this.otpTimer) {
       this.otpTimer.stop();
     }
@@ -667,12 +553,10 @@ class SignupHandler {
   showOTPForm(email) {
     this.userEmail = email;
     
-    // Update email in OTP subtitle
     if (this.userEmailElement) {
       this.userEmailElement.textContent = email;
     }
     
-    // Animate transition
     this.signupWrapper.classList.add('slide-out');
     
     setTimeout(() => {
@@ -680,13 +564,11 @@ class SignupHandler {
       this.otpWrapper.style.display = 'block';
       this.otpWrapper.classList.add('slide-in');
       
-      // Focus first OTP input
       const firstOtpInput = document.querySelector('.otp-input');
       if (firstOtpInput) {
         setTimeout(() => firstOtpInput.focus(), 300);
       }
       
-      // Start OTP timer
       this.startOTPTimer();
     }, 300);
   }
@@ -698,12 +580,10 @@ class SignupHandler {
     
     this.otpTimer = new OTPTimer(
       () => {
-        // Timer ended
         this.resendOtpBtn.disabled = false;
         this.resendOtpBtn.textContent = "Resend Code";
       },
       (timeLeft) => {
-        // Update timer
         this.resendOtpBtn.disabled = timeLeft > 0;
         if (timeLeft > 0) {
           this.resendOtpBtn.textContent = `Resend Code (${Math.ceil(timeLeft/60)} min)`;
@@ -751,7 +631,6 @@ class SignupHandler {
     const confirmPassword = this.confirmPassword?.value || "";
     const termsChecked = this.terms?.checked || false;
 
-    // clear old errors
     this.clearFieldError(this.fullNameError);
     this.clearFieldError(this.usernameError);
     this.clearFieldError(this.emailError);
@@ -773,7 +652,6 @@ class SignupHandler {
       ok = false;
     }
 
-    // match backend rule (min 6)
     if (!password || password.length < 6) {
       this.showFieldError(this.passwordError, "Password must be at least 6 characters");
       ok = false;
@@ -901,7 +779,6 @@ class SignupHandler {
         throw new Error(msg);
       }
 
-      // ✅ Signup successful - Show OTP form
       clearAuthStorage();
       
       const userEmail = this.email.value.trim();
@@ -952,16 +829,13 @@ class SignupHandler {
         throw new Error(msg);
       }
 
-      // ✅ OTP verification successful
       this.verifyOtpBtn.classList.add('otp-success');
       this.verifyOtpBtn.innerHTML = '<span>Verified! ✓</span>';
       
       toast.success("Email verified successfully! You can now login.", "Verified!");
       
-      // Clear form
       this.form.reset();
       
-      // Redirect to signin after success
       setTimeout(() => {
         window.location.href = "signin.html";
       }, 2000);
@@ -969,7 +843,6 @@ class SignupHandler {
     } catch (err) {
       toast.error(err.message || "Invalid verification code. Please try again.", "Verification Failed");
 
-      // Clear OTP inputs on error
       this.otpInputHandler.clear();
     } finally {
       this.setLoading(false, true);
@@ -1004,10 +877,8 @@ class SignupHandler {
         throw new Error(msg);
       }
 
-      // ✅ OTP resent successfully
       toast.success("New verification code sent to your email!", "Code Resent");
       
-      // Reset timer and clear OTP inputs
       this.otpTimer.reset();
       this.startOTPTimer();
       this.otpInputHandler.clear();
