@@ -29,11 +29,11 @@ class GoogleOAuth:
         # Check for Render environment first (most reliable)
         if os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production":
             logger.info("Detected production/Render environment")
-            # Production/Render default
-            self.redirect_uri = "https://zyneth-backend.onrender.com/users/auth/google/callback"
+            # Use FRONTEND URL, not backend URL!
+            self.redirect_uri = "https://zyneth.shop/signin.html"  # ← FRONTEND PAGE
         else:
             # Local development
-            self.redirect_uri = "http://localhost:8000/users/auth/google/callback"
+            self.redirect_uri = "http://localhost:5500/frontend/signin.html"  # ← FRONTEND PAGE
             logger.info("Detected local development environment")
         
         # Check for explicit environment variable override (highest priority)
