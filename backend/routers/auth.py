@@ -1,13 +1,12 @@
 """
-Google OAuth authentication router - FIXED VERSION
+Google OAuth authentication router - FRONTEND-FIRST VERSION
 """
 import secrets
-from datetime import datetime, timedelta
 from typing import Optional
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 import httpx
 from pydantic import BaseModel
 
@@ -24,29 +23,29 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
-# CRITICAL FIX: Always use localhost for local testing
-# When running locally, ALWAYS use localhost redirect URI
-IS_LOCAL = os.getenv("RENDER") != "true"  # Render sets RENDER=true
+# FRONTEND redirect URIs (Google talks to frontend only)
+IS_LOCAL = os.getenv("RENDER") != "true"
 
 if IS_LOCAL:
-    # LOCAL DEVELOPMENT
-    GOOGLE_REDIRECT_URI = "http://localhost:8000/auth/google/callback"
+    # LOCAL DEVELOPMENT - Frontend handles OAuth
+    FRONTEND_REDIRECT_URI = "http://localhost:5500/frontend/oauth-callback.html"
     FRONTEND_URL = "http://127.0.0.1:5500/frontend"
+    BACKEND_URL = "http://localhost:8000"
     print("🖥️  Running in LOCAL development mode")
 else:
-    # PRODUCTION (Render)
-    GOOGLE_REDIRECT_URI = "https://zyneth-backend.onrender.com/auth/google/callback"
+    # PRODUCTION - Frontend handles OAuth
+    FRONTEND_REDIRECT_URI = "https://zyneth.shop/oauth-callback.html"
     FRONTEND_URL = "https://zyneth.shop"
+    BACKEND_URL = "https://zyneth-backend.onrender.com"
     print("🚀 Running in PRODUCTION mode")
 
-    GOOGLE_APPLICATION_NAME = "Zyneth"
-
-print("🔧 OAuth Configuration:")
+print("🔧 OAuth Configuration (Frontend-First):")
 print(f"   Environment: {'LOCAL' if IS_LOCAL else 'PRODUCTION'}")
 print(f"   Google Client ID: {GOOGLE_CLIENT_ID[:10]}..." if GOOGLE_CLIENT_ID else "❌ MISSING")
 print(f"   Google Client Secret: {'✅ SET' if GOOGLE_CLIENT_SECRET else '❌ MISSING'}")
-print(f"   Redirect URI: {GOOGLE_REDIRECT_URI}")
+print(f"   Frontend Redirect URI: {FRONTEND_REDIRECT_URI}")
 print(f"   Frontend URL: {FRONTEND_URL}")
+print(f"   Backend URL: {BACKEND_URL}")
 
 # Validate configuration
 if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
@@ -63,74 +62,84 @@ class GoogleUserInfo(BaseModel):
     family_name: Optional[str] = None
     sub: str  # Google user ID
 
+class AuthUrlResponse(BaseModel):
+    """Response model for auth URL endpoint"""
+    auth_url: str
+
+class GoogleAuthRequest(BaseModel):
+    """Request model for Google auth code exchange"""
+    code: str
+
+class GoogleAuthResponse(BaseModel):
+    """Response model for Google auth"""
+    token: str
+    user_id: str
+    email: str
+    role: str
+    is_new: bool
+
 async def get_user_crud(db=Depends(get_database)):
     from crud.user import UserCRUD
     return UserCRUD(db)
 
-@router.get("/google/login")
-async def google_login(request: Request):
+@router.get("/google/url", response_model=AuthUrlResponse)
+async def get_google_auth_url():
     """
-    Initiate Google OAuth flow
+    Get Google OAuth URL for frontend to redirect to
+    
+    Google will redirect back to FRONTEND, not backend
     """
     # Validate configuration
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        print("❌ Google OAuth not configured - missing client ID or secret")
-        return RedirectResponse(f"{FRONTEND_URL}/signin.html?error=oauth_not_configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google OAuth is not configured properly"
+        )
     
-    # Generate secure state and nonce
+    # Generate secure state
     state = secrets.token_urlsafe(32)
-    nonce = secrets.token_urlsafe(32)
     
-    # Store state and nonce
-    encoded_state = f"{state}|{nonce}"
-    
-    # Google OAuth URL parameters - CRITICAL: Use EXACT redirect_uri
+    # Google OAuth URL parameters - Google redirects to FRONTEND
     params = {
         "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,  # MUST match Google Cloud Console exactly
+        "redirect_uri": FRONTEND_REDIRECT_URI,  # Google talks to frontend
         "response_type": "code",
-        "scope": "openid email profile",  # Basic scopes only
-        "state": encoded_state,
-        "access_type": "online",  # Changed from offline to online for simplicity
-        "prompt": "select_account",  # Changed from consent to select_account
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "online",
+        "prompt": "select_account",
     }
     
     # Build Google OAuth URL
     auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
     
     print("=" * 60)
-    print("🔗 Google OAuth Login Request:")
-    print(f"   Redirect URI: {GOOGLE_REDIRECT_URI}")
-    print(f"   Client ID: {GOOGLE_CLIENT_ID[:20]}...")
-    print(f"   Auth URL: {auth_url[:100]}...")
+    print("🔗 Generated Google OAuth URL for frontend:")
+    print(f"   Google will redirect to: {FRONTEND_REDIRECT_URI}")
+    print(f"   State parameter: {state[:10]}...")
     print("=" * 60)
     
-    return RedirectResponse(url=auth_url)
+    # Return JSON response with the auth URL
+    return {"auth_url": auth_url}
 
-@router.get("/google/callback")
-async def google_callback(
-    request: Request,
-    code: Optional[str] = None,
-    state: Optional[str] = None,
-    error: Optional[str] = None,
+@router.post("/google/exchange", response_model=GoogleAuthResponse)
+async def exchange_google_code(
+    request: GoogleAuthRequest,
     crud=Depends(get_user_crud)
 ):
     """
-    Handle Google OAuth callback
+    Exchange Google authorization code for backend tokens
+    
+    Frontend gets the code from Google and sends it here
+    Backend exchanges code for Google tokens, then creates JWT
     """
-    print(f"🔄 Google callback received")
-    print(f"   Code present: {'✅' if code else '❌'}")
-    print(f"   State present: {'✅' if state else '❌'}")
-    print(f"   Error: {error if error else 'None'}")
+    print("🔄 Exchanging Google authorization code...")
     
-    # Check for errors from Google
-    if error:
-        print(f"❌ Google OAuth error: {error}")
-        return RedirectResponse(f"{FRONTEND_URL}/signin.html?error=google_auth_failed&message={error}")
-    
-    if not code:
-        print("❌ No authorization code received from Google")
-        return RedirectResponse(f"{FRONTEND_URL}/signin.html?error=no_auth_code")
+    if not request.code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No authorization code provided"
+        )
     
     try:
         # Exchange authorization code for tokens
@@ -138,13 +147,13 @@ async def google_callback(
         token_data = {
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            "code": code,
+            "code": request.code,
             "grant_type": "authorization_code",
-            "redirect_uri": GOOGLE_REDIRECT_URI,  # MUST match exactly
+            "redirect_uri": FRONTEND_REDIRECT_URI,  # Must match what frontend used
         }
         
-        print("🔄 Exchanging code for tokens...")
-        print(f"   Using redirect_uri: {GOOGLE_REDIRECT_URI}")
+        print("🔄 Exchanging code for Google tokens...")
+        print(f"   Using frontend redirect_uri: {FRONTEND_REDIRECT_URI}")
         
         async with httpx.AsyncClient() as client:
             token_response = await client.post(token_url, data=token_data)
@@ -154,7 +163,7 @@ async def google_callback(
                 print(f"   Response: {token_response.text}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Token exchange failed: {token_response.text}"
+                    detail=f"Failed to exchange authorization code: {token_response.text}"
                 )
             
             token_json = token_response.json()
@@ -164,10 +173,10 @@ async def google_callback(
                 print("❌ No access token in response")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="No access token received"
+                    detail="No access token received from Google"
                 )
             
-            print("✅ Got access token, fetching user info...")
+            print("✅ Got Google access token, fetching user info...")
             
             # Get user info from Google
             userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
@@ -178,17 +187,17 @@ async def google_callback(
                 print(f"❌ Userinfo fetch failed: {userinfo_response.status_code}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Failed to fetch user info"
+                    detail="Failed to fetch user info from Google"
                 )
             
             userinfo = userinfo_response.json()
-            print(f"✅ User info: {userinfo.get('email', 'No email')}")
+            print(f"✅ User info received for: {userinfo.get('email', 'No email')}")
             
             # Validate email
             if not userinfo.get("email"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="No email in user info"
+                    detail="No email in Google user info"
                 )
             
             # Create user or get existing
@@ -197,6 +206,7 @@ async def google_callback(
             picture = userinfo.get("picture")
             
             existing_user = await crud.get_user_by_email(email)
+            is_new = False
             
             if existing_user:
                 print(f"🔄 User exists: {email}")
@@ -215,50 +225,40 @@ async def google_callback(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         detail="Failed to create user"
                     )
+                is_new = True
             
             # Create JWT token
             jwt_token = create_access_token(
                 data={"sub": user.email, "role": user.role}
             )
             
-            # Redirect to frontend callback page
-            callback_url = f"{FRONTEND_URL}/google-callback.html"
-            callback_url += f"?token={jwt_token}"
-            callback_url += f"&user_id={user.id}"
-            callback_url += f"&email={user.email}"
-            callback_url += f"&role={user.role}"
+            print(f"✅ Authentication successful for {email}")
+            print(f"   User ID: {user.id}")
+            print(f"   Is new user: {is_new}")
             
-            if existing_user:
-                callback_url += "&is_new=false"
-            else:
-                callback_url += "&is_new=true"
-            
-            print(f"🔗 Redirecting to: {callback_url}")
-            
-            response = RedirectResponse(url=callback_url)
-            
-            # Set cookie for API calls
-            response.set_cookie(
-                key="access_token",
-                value=jwt_token,
-                httponly=True,
-                secure=not IS_LOCAL,  # Secure only in production
-                samesite="lax",
-                max_age=30 * 24 * 60 * 60,
-                path="/"
+            return GoogleAuthResponse(
+                token=jwt_token,
+                user_id=str(user.id),
+                email=user.email,
+                role=user.role,
+                is_new=is_new
             )
             
-            return response
-            
     except httpx.HTTPStatusError as e:
-        print(f"❌ HTTP error: {e}")
-        return RedirectResponse(f"{FRONTEND_URL}/signin.html?error=http_error")
+        print(f"❌ HTTP error during Google token exchange: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to communicate with Google: {str(e)}"
+        )
     
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
         import traceback
         traceback.print_exc()
-        return RedirectResponse(f"{FRONTEND_URL}/signin.html?error=server_error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during authentication"
+        )
 
 @router.get("/test-config")
 async def test_config():
@@ -268,9 +268,12 @@ async def test_config():
         "environment": "local" if IS_LOCAL else "production",
         "google_client_id_set": bool(GOOGLE_CLIENT_ID),
         "google_client_secret_set": bool(GOOGLE_CLIENT_SECRET),
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "frontend_redirect_uri": FRONTEND_REDIRECT_URI,
         "frontend_url": FRONTEND_URL,
-        "expected_google_console_config": {
+        "backend_url": BACKEND_URL,
+        "oauth_flow": "frontend-first",
+        "description": "Google talks to frontend only, frontend sends code to backend",
+        "required_google_console_config": {
             "authorized_javascript_origins": [
                 "http://localhost:5500",
                 "http://127.0.0.1:5500", 
@@ -278,15 +281,23 @@ async def test_config():
                 "https://www.zyneth.shop"
             ],
             "authorized_redirect_uris": [
-                "http://localhost:8000/auth/google/callback",
-                "https://zyneth-backend.onrender.com/auth/google/callback"
-            ]
+                "http://localhost:5500/frontend/oauth-callback.html",
+                "https://zyneth.shop/oauth-callback.html"
+            ],
+            "important": "Google Console should NOT have any backend URLs, only frontend URLs"
+        },
+        "endpoints": {
+            "get_auth_url": "GET /auth/google/url",
+            "exchange_code": "POST /auth/google/exchange"
         }
     }
 
 @router.post("/logout")
 async def logout():
-    """Logout endpoint"""
-    response = RedirectResponse(url=f"{FRONTEND_URL}/signin.html")
+    """Logout endpoint - returns success response"""
+    response = JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Logged out successfully"}
+    )
     response.delete_cookie("access_token")
     return response

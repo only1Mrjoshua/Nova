@@ -16,7 +16,11 @@ const API_BASE_URL = isLocal
 
 const LOGIN_ENDPOINT = `${API_BASE_URL}/users/login`;
 const ME_ENDPOINT = `${API_BASE_URL}/users/me`;
-const GOOGLE_LOGIN_ENDPOINT = `${API_BASE_URL}/auth/google/login`;
+const GOOGLE_AUTH_URL_ENDPOINT = `${API_BASE_URL}/auth/google/url`;
+const GOOGLE_EXCHANGE_ENDPOINT = `${API_BASE_URL}/auth/google/exchange`;
+const FRONTEND_OAUTH_CALLBACK = isLocal 
+  ? "http://localhost:5500/frontend/oauth-callback.html" 
+  : "https://zyneth.shop/oauth-callback.html";
 
 /* =========================
    DOM ELEMENTS
@@ -172,7 +176,7 @@ async function validateTokenWithBackend(token) {
 }
 
 /* =========================
-   GOOGLE OAUTH HANDLER
+   GOOGLE OAUTH HANDLER - UPDATED
 ========================= */
 class GoogleAuthHandler {
   constructor() {
@@ -203,13 +207,39 @@ class GoogleAuthHandler {
       // Show loading overlay
       loadingOverlay.show("Connecting to Google...");
       
-      // Redirect to backend Google auth endpoint
-      // The backend will handle the OAuth flow and redirect to google-callback.html
-      window.location.href = GOOGLE_LOGIN_ENDPOINT;
+      console.log("Fetching Google OAuth URL from backend...");
+      
+      // Step 1: Get Google OAuth URL from backend
+      const response = await fetch(GOOGLE_AUTH_URL_ENDPOINT, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Failed to get Google OAuth URL: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const authUrl = data.auth_url;
+      
+      if (!authUrl) {
+        throw new Error("No auth URL received from backend");
+      }
+      
+      console.log("Google OAuth URL received, redirecting user...");
+      
+      // Step 2: Redirect user to Google OAuth URL
+      // Google will redirect back to FRONTEND_OAUTH_CALLBACK
+      setTimeout(() => {
+        window.location.href = authUrl;
+      }, 500);
       
     } catch (error) {
       console.error('Google sign-in error:', error);
-      toast.error('Failed to initiate Google sign-in', 'Google Sign-In Error');
+      toast.error(error.message || 'Failed to initiate Google sign-in', 'Google Sign-In Error');
       
       // Re-enable button
       this.resetGoogleButton();
@@ -491,7 +521,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       'google_auth_failed': 'Google authentication failed. Please try again.',
       'no_auth_code': 'Authentication code missing. Please try again.',
       'invalid_state': 'Security validation failed. Please try again.',
-      'server_error': 'Server error occurred. Please try again.'
+      'server_error': 'Server error occurred. Please try again.',
+      'oauth_not_configured': 'Google OAuth is not configured. Please contact support.'
     };
     
     toast.error(
